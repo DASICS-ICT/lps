@@ -96,7 +96,8 @@ syshandle(struct TuxThread* p, uintptr_t sysno, uintptr_t a0, uintptr_t a1,
     SYS(utimensat,         sys_nosys(proc, "utimensat"))
     default:
         fprintf(stderr, "unknown syscall: %ld (%s)\n", sysno, sysname(sysno));
-        assert(!"unhandled syscall");
+        // assert(!"unhandled syscall");
+        // do nothing
     }
 
     return r;

@@ -6,6 +6,8 @@ project(
   version: run_command('git', 'rev-parse', '--short', 'HEAD', check: false).stdout().strip()
 )
 
+add_project_link_arguments('-static', language: 'c')
+
 add_project_arguments('-D_LARGEFILE64_SOURCE', '-D_FILE_OFFSET_BITS=64', '-Werror=implicit-function-declaration', language : 'c')
 
 compiler = meson.get_compiler('c')
@@ -38,10 +40,12 @@ cpu = target_machine.cpu_family()
 archmap = {
   'aarch64': 'arm64',
   'x86_64': 'amd64',
+  'riscv64': 'riscv64',
 }
 xarchmap = {
   'aarch64': 'arm64',
   'x86_64': 'x64',
+  'riscv64': 'riscv64',
 }
 
 if not archmap.has_key(cpu)
@@ -87,7 +91,7 @@ if not get_option('liblfi-only')
   subdir('specinvoke')
 endif
 if not get_option('tools-only')
-  subdir('liblfi-small')
+  # subdir('liblfi-small')
   if get_option('liblfi') == 'standard'
     subdir('liblfi')
   endif

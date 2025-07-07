@@ -217,7 +217,7 @@ lfi_proc_loadelf(struct LFIAddrSpace* as, uint8_t* progdat, size_t progsz, uint8
 #ifdef CONFIG_GDB
         char cmd[64];
         snprintf(cmd, sizeof(cmd), "add-symbol-file %s -o 0x%lx", opts.gdbfile, pfirst);
-        libbreakpoint_push_gdb_command("file");
+        // libbreakpoint_push_gdb_command("file");
         libbreakpoint_push_gdb_command(cmd);
         breakpoint;
 #else

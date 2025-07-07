@@ -77,14 +77,15 @@ lfi_ctx_new(struct LFIAddrSpace* as, void* ctxp, bool main)
         return NULL;
 
     struct Sys* sys;
-    if (main || as->plat->opts.sysexternal) {
-        sys = sysalloc(as->plat, as->base);
-        if (!sys)
-            goto err;
-        syssetup(as->plat, sys, as->base);
-    } else {
-        sys = (struct Sys*) as->base;
-    }
+    // if (main || as->plat->opts.sysexternal) {
+    //     sys = sysalloc(as->plat, as->base);
+    //     if (!sys)
+    //         goto err;
+    //     syssetup(as->plat, sys, as->base);
+    // } else {
+    //     sys = (struct Sys*) as->base;
+    // }
+    sys = NULL;
 
     *ctx = (struct LFIContext) {
         .ctxp = ctxp,
@@ -145,7 +146,7 @@ lfi_ctx_pause(struct LFIContext* ctx, uint64_t val)
 EXPORT void
 lfi_ctx_tpset(struct LFIContext* ctx, lfiptr_t tp)
 {
-    ctx->tp = tp;
+    // ctx->tp = tp;
 }
 
 EXPORT struct LFIAddrSpace*

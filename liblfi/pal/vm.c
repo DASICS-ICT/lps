@@ -30,8 +30,8 @@ lfi_as_new(struct LFIPlatform* plat)
     *as = (struct LFIAddrSpace) {
         .base = base,
         .size = size,
-        .minaddr = base + guardsize() + plat->opts.pagesize, // for sys page
-        .maxaddr = base + size - guardsize(),
+        .minaddr = base, // + guardsize() + plat->opts.pagesize, // for sys page
+        .maxaddr = base + size, // - guardsize(),
         .plat = plat,
     };
     bool ok = mm_init(&as->mm, as->minaddr, as->maxaddr - as->minaddr, plat->opts.pagesize);

@@ -38,15 +38,23 @@ struct ElfTable {
     size_t size;
 };
 
+struct BoundCSR {
+    uintptr_t libbound[16][2];
+    uintptr_t jmpbound[4][2];
+    uintptr_t libcfg;
+    uintptr_t jmpcfg;
+};
+
 struct LFIContext {
     void* kstackp;
-    uintptr_t kgp;
-    uintptr_t ktp;
+    void* kgp;
+    void* ktp;
     uintptr_t _pad;
     struct TuxRegs regs;
     void* ctxp;
     struct Sys* sys;
     struct LFIAddrSpace* as;
+    struct BoundCSR *bd;
 
     uintptr_t elfbase;
     struct ElfTable symtab;

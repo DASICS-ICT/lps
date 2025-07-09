@@ -1,7 +1,10 @@
 #include "config.h"
+#include "pal/arch/riscv64/regs.h"
 
 #define N_RTCALLS 256
 #define PROC_REGS 32
+#define JUMP_REGS 256
+#define CFG_REGS  320
 
 .macro INIT_DASICS
     la t0, dasics_ufault_entry
@@ -17,6 +20,27 @@
     csrw 0x8c1, t0
     csrw 0x8c8, t2
     fence.i
+.endm
+
+// a1: struct BoundCSR
+.macro ENTER_DASICS
+    la t0, dasics_ufault_entry
+    csrw 0x005, t0
+    // libbound
+    ld t0, (0*16 + 0*8)(a1)
+    ld t1, (0*16 + 1*8)(a1)
+    csrw CSR_DLBOUND0LO, t0
+    csrw CSR_DLBOUND0HI, t1
+    // jmpbound
+    ld t0, JUMP_REGS + (0*16 + 0*8)(a1)
+    ld t1, JUMP_REGS + (0*16 + 1*8)(a1)
+    csrw CSR_DJBOUND0LO, t0
+    csrw CSR_DJBOUND0HI, t1
+    // cfg
+    ld t2, CFG_REGS + (0*8)(a1)
+    csrw CSR_DLCFG, t2
+    ld t2, CFG_REGS + (1*8)(a1)
+    csrw CSR_DJCFG, t2
 .endm
 
 .macro SAVE_PROC
@@ -82,15 +106,15 @@ lfi_ctx_internal:
 	ebreak
 
 // -------------------------------------------------------------------------
-// lfi_ctx_entry(LFIContext* ctx, void** kstackp)
+// lfi_ctx_entry(LFIContext* ctx, void* metadata)
 // a0: LFIContext* ctx
-// a1: void** kstackp
+// a1: void* metadata
 // -------------------------------------------------------------------------
 .p2align 4
 .global lfi_ctx_entry
 lfi_ctx_entry:
     csrw 0x040, a0 // CSR_USCRATCH
-    INIT_DASICS
+    ENTER_DASICS
     // 13 * 8 = 104 bytes
     addi sp, sp, -96
     // save callee-saved registers to stack
@@ -107,7 +131,7 @@ lfi_ctx_entry:
     sd s9, 8*10(sp)
     sd s10, 8*11(sp)
     // save stack to kstackp
-    sd sp, 0(a1)
+    sd sp, 8*0(a0)
     sd gp, 8*1(a0)
     sd tp, 8*2(a0)
     j lfi_restore_regs

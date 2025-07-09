@@ -18,7 +18,7 @@ _Thread_local struct LFIContext* lfi_myctx;
 
 #define asm __asm__
 
-extern uint64_t lfi_ctx_entry(struct LFIContext* ctx, void** kstackp)
+extern uint64_t lfi_ctx_entry(struct LFIContext* ctx, void* metadata)
     asm ("lfi_ctx_entry");
 
 extern void lfi_asm_ctx_exit(void* kstackp, uint64_t val)
@@ -87,10 +87,22 @@ lfi_ctx_new(struct LFIAddrSpace* as, void* ctxp, bool main)
     // }
     sys = NULL;
 
+    struct BoundCSR* bd = malloc(sizeof(struct BoundCSR));
+    if (!bd)
+        return NULL;
+    memset(bd, 0, sizeof(struct BoundCSR));
+    bd->jmpbound[0][0] = as->minaddr;
+    bd->jmpbound[0][1] = as->maxaddr;
+    bd->libbound[0][0] = as->minaddr;
+    bd->libbound[0][1] = as->maxaddr;
+    bd->libcfg = 0xb;
+    bd->jmpcfg = 0x1;
+
     *ctx = (struct LFIContext) {
         .ctxp = ctxp,
         .sys = sys,
         .as = as,
+        .bd = bd,
     };
 
     lfi_regs_init(&ctx->regs, as, ctx);
@@ -107,7 +119,7 @@ lfi_ctx_run(struct LFIContext* ctx, struct LFIAddrSpace* as)
     (void) as;
     lfi_myctx = ctx;
 
-    uint64_t ret = lfi_ctx_entry(ctx, &ctx->kstackp);
+    uint64_t ret = lfi_ctx_entry(ctx, ctx->bd);
 
     return ret;
 }

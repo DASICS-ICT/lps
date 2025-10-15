@@ -12,6 +12,7 @@ srcs = files(
   'perf.c',
   'err.c',
   'host.c',
+  'schedule.c',
 )
 
 subdir('pal')

@@ -12,6 +12,8 @@
 #include "types.h"
 #include "futex.h"
 
+#include "mylist.h"
+
 enum {
     TUX_PATH_MAX   = 4096,
     TUX_NOFILE     = 128,
@@ -68,6 +70,13 @@ struct TuxProc {
     struct LFIAddrSpaceInfo p_info;
 };
 
+enum TState {
+    THREAD_RUNNABLE,
+    THREAD_BOLCKED,
+    THREAD_EXITED,
+    THREAD_ZOMBIE
+};
+
 struct TuxThread {
     struct LFIContext* p_ctx;
     lfiptr_t stack;
@@ -76,6 +85,10 @@ struct TuxThread {
     int tid;
 
     struct TuxProc* proc;
+
+    enum TState t_state;
+
+    struct list_node list;
 };
 
 int procmapat(struct TuxProc* p, lfiptr_t start, size_t size, int prot, int flags, int fd, off_t offset);

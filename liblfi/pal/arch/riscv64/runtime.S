@@ -113,9 +113,9 @@ lfi_ctx_internal:
 .p2align 4
 .global lfi_ctx_entry
 lfi_ctx_entry:
-    csrw 0x040, a0 // CSR_USCRATCH
+    csrw 0x040, a0 // CSR_USCRATCH: Make this only avalible in Trusted Area!
     ENTER_DASICS
-    // 13 * 8 = 104 bytes
+    // 12 * 8 = 96 bytes
     addi sp, sp, -96
     // save callee-saved registers to stack
     sd ra, 8*0(sp)
@@ -143,6 +143,7 @@ lfi_ctx_entry:
 // -------------------------------------------------------------------------
 .p2align 4
 lfi_restore_regs:
+    // TODO: restore using uret
     ld ra,  PROC_REGS + 8*1(a0)
     ld sp,  PROC_REGS + 8*2(a0)
     ld gp,  PROC_REGS + 8*3(a0)

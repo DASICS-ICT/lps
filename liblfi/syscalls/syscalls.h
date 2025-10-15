@@ -9,6 +9,8 @@
 #include "proc.h"
 #include "thread.h"
 
+#include "runtime_call.h"
+
 static inline bool
 procvalid(struct TuxProc* p, lfiptr_t addr)
 {
@@ -196,3 +198,7 @@ uintptr_t sys_ignore(struct TuxProc* p, const char* name);
 uintptr_t sys_nosys(struct TuxProc* p, const char* name);
 
 int sys_nanosleep(struct TuxProc* p, uintptr_t req, uintptr_t rem);
+
+int sys_pipe2(struct TuxThread* p, uintptr_t pipefd, int flags);
+
+int sys_runtime_call(struct TuxThread* p, RuntimeCallType type);

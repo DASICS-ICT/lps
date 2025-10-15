@@ -150,10 +150,11 @@ main(int argc, char** argv)
         return 1;
     }
 
-    uint64_t code = lfi_tux_proc_run(p);
+    // uint64_t code = lfi_tux_proc_run(p);
+    scheduler(p);
 
     if (args.opts.verbose)
-        fprintf(stderr, "[lfi-run] exited with code: %ld\n", (long) code);
+        fprintf(stderr, "[lfi-run] exited with code: %ld\n", (long) 0);
 
-    return (int) code;
+    return (int) 0;
 }

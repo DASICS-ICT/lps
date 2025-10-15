@@ -94,6 +94,8 @@ syshandle(struct TuxThread* p, uintptr_t sysno, uintptr_t a0, uintptr_t a1,
     SYS(socket,            sys_nosys(proc, "socket"))
     SYS(mremap,            sys_nosys(proc, "mremap"))
     SYS(utimensat,         sys_nosys(proc, "utimensat"))
+    SYS(pipe2,             sys_pipe2(p, a0, a1))
+    SYS(runtime_call,      sys_runtime_call(p, a0))
     default:
         fprintf(stderr, "unknown syscall: %ld (%s)\n", sysno, sysname(sysno));
         // assert(!"unhandled syscall");

@@ -309,6 +309,7 @@ enum {
     TUX_SYS_set_mempolicy_home_node = 450,
     TUX_SYS_cachestat               = 451,
     TUX_SYS_fchmodat2               = 452,
+    TUX_SYS_runtime_call            = 500,
 };
 
 void arch_syshandle(struct LFIContext* ctx);

@@ -79,6 +79,8 @@ struct LFILibCalls {
 
 void* lfi_libcalls(void);
 
+void scheduler(struct TuxThread* t);
+
 #ifdef __cplusplus
 }
 #endif

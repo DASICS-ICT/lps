@@ -6,22 +6,6 @@
 #define JUMP_REGS 256
 #define CFG_REGS  320
 
-.macro INIT_DASICS
-    la t0, dasics_ufault_entry
-    csrw 0x005, t0
-    li t0, 0x4000000000
-    li t2, 0xb
-    csrw 0x890, zero
-    csrw 0x891, t0
-    csrw 0x880, t2
-    fence.i
-    li t2, 0x1
-    csrw 0x8c0, zero
-    csrw 0x8c1, t0
-    csrw 0x8c8, t2
-    fence.i
-.endm
-
 // a1: struct BoundCSR
 .macro ENTER_DASICS
     la t0, dasics_ufault_entry
@@ -43,107 +27,67 @@
     csrw CSR_DJCFG, t2
 .endm
 
-.macro SAVE_PROC
-    csrrw s0, 0x040, s0 // CSR_USCRATCH
-    sd ra, PROC_REGS + 8*1(s0)
-    sd sp, PROC_REGS + 8*2(s0)
-    sd gp, PROC_REGS + 8*3(s0)
-    sd tp, PROC_REGS + 8*4(s0)
-    // save caller-saved registers
-    sd t0, PROC_REGS + 8*5(s0)
-    sd t1, PROC_REGS + 8*6(s0)
-    sd t2, PROC_REGS + 8*7(s0)
-    sd a0, PROC_REGS + 8*10(s0)
-    sd a1, PROC_REGS + 8*11(s0)
-    sd a2, PROC_REGS + 8*12(s0)
-    sd a3, PROC_REGS + 8*13(s0)
-    sd a4, PROC_REGS + 8*14(s0)
-    sd a5, PROC_REGS + 8*15(s0)
-    sd a6, PROC_REGS + 8*16(s0)
-    sd a7, PROC_REGS + 8*17(s0)
-    sd t3, PROC_REGS + 8*28(s0)
-    sd t4, PROC_REGS + 8*29(s0)
-    sd t5, PROC_REGS + 8*30(s0)
-    sd t6, PROC_REGS + 8*31(s0)
-    // Change into runtime's sp, gp, tp
+// LFIContext* ctx in CSR_USCRATCH
+.macro SAVE_ALL
+    csrrw s0, CSR_USCRATCH, s0 // CSR_USCRATCH
+    sd ra,  PROC_REGS + 8*1(s0)
+    sd sp,  PROC_REGS + 8*2(s0)
+    sd gp,  PROC_REGS + 8*3(s0)
+    sd tp,  PROC_REGS + 8*4(s0)
+    sd t0,  PROC_REGS + 8*5(s0)
+    sd t1,  PROC_REGS + 8*6(s0)
+    sd t2,  PROC_REGS + 8*7(s0)
+    // sd s0,  PROC_REGS + 8*8(s0)
+    sd s1,  PROC_REGS + 8*9(s0)
+    sd a0,  PROC_REGS + 8*10(s0)
+    sd a1,  PROC_REGS + 8*11(s0)
+    sd a2,  PROC_REGS + 8*12(s0)
+    sd a3,  PROC_REGS + 8*13(s0)
+    sd a4,  PROC_REGS + 8*14(s0)
+    sd a5,  PROC_REGS + 8*15(s0)
+    sd a6,  PROC_REGS + 8*16(s0)
+    sd a7,  PROC_REGS + 8*17(s0)
+    sd s2,  PROC_REGS + 8*18(s0)
+    sd s3,  PROC_REGS + 8*19(s0)
+    sd s4,  PROC_REGS + 8*20(s0)
+    sd s5,  PROC_REGS + 8*21(s0)
+    sd s6,  PROC_REGS + 8*22(s0)
+    sd s7,  PROC_REGS + 8*23(s0)
+    sd s8,  PROC_REGS + 8*24(s0)
+    sd s9,  PROC_REGS + 8*25(s0)
+    sd s10, PROC_REGS + 8*26(s0)
+    sd s11, PROC_REGS + 8*27(s0)
+    sd t3,  PROC_REGS + 8*28(s0)
+    sd t4,  PROC_REGS + 8*29(s0)
+    sd t5,  PROC_REGS + 8*30(s0)
+    sd t6,  PROC_REGS + 8*31(s0)
+    // save s0
+    csrr t0, CSR_USCRATCH
+    sd t0,  PROC_REGS + 8*8(s0)
+    // save uepc
+    csrr t0, CSR_UEPC
+    sd t0,  PROC_REGS + 8*32(s0) // TODO: UEPC change location
+    // save utval
+    csrr t0, CSR_UTVAL
+    sd t0,  PROC_REGS + 8*33(s0)
+    // save dfreason
+    csrr t0, CSR_DFREASON
+    sd t0,  PROC_REGS + 8*34(s0)
+    // change into runtime's sp, gp, tp
     ld sp, 0(s0)
     ld gp, 8(s0)
     ld tp, 16(s0)
 .endm
 
-.macro RESTORE_PROC
-    // uepc += 4
-    csrr t0, 0x041
-    addi t0, t0, 4
-    csrw 0x041, t0
-    ld ra, PROC_REGS + 8*1(s0)
-    ld sp, PROC_REGS + 8*2(s0)
-    ld gp, PROC_REGS + 8*3(s0)
-    ld tp, PROC_REGS + 8*4(s0)
-    ld t0, PROC_REGS + 8*5(s0)
-    ld t1, PROC_REGS + 8*6(s0)
-    ld t2, PROC_REGS + 8*7(s0)
-    ld a0, PROC_REGS + 8*10(s0)
-    ld a1, PROC_REGS + 8*11(s0)
-    ld a2, PROC_REGS + 8*12(s0)
-    ld a3, PROC_REGS + 8*13(s0)
-    ld a4, PROC_REGS + 8*14(s0)
-    ld a5, PROC_REGS + 8*15(s0)
-    ld a6, PROC_REGS + 8*16(s0)
-    ld a7, PROC_REGS + 8*17(s0)
-    ld t3, PROC_REGS + 8*28(s0)
-    ld t4, PROC_REGS + 8*29(s0)
-    ld t5, PROC_REGS + 8*30(s0)
-    ld t6, PROC_REGS + 8*31(s0)
-    csrrw s0, 0x040, s0 // CSR_USCRATCH
-    uret
-.endm
-
-.p2align 4
-.global lfi_ctx_internal
-// This function places its return value in x8
-lfi_ctx_internal:
-	ebreak
-
-// -------------------------------------------------------------------------
-// lfi_ctx_entry(LFIContext* ctx, void* metadata)
-// a0: LFIContext* ctx
-// a1: void* metadata
-// -------------------------------------------------------------------------
-.p2align 4
-.global lfi_ctx_entry
-lfi_ctx_entry:
-    csrw 0x040, a0 // CSR_USCRATCH: Make this only avalible in Trusted Area!
-    ENTER_DASICS
-    // 12 * 8 = 96 bytes
-    addi sp, sp, -96
-    // save callee-saved registers to stack
-    sd ra, 8*0(sp)
-    sd s0, 8*1(sp)
-    sd s1, 8*2(sp)
-    sd s2, 8*3(sp)
-    sd s3, 8*4(sp)
-    sd s4, 8*5(sp)
-    sd s5, 8*6(sp)
-    sd s6, 8*7(sp)
-    sd s7, 8*8(sp)
-    sd s8, 8*9(sp)
-    sd s9, 8*10(sp)
-    sd s10, 8*11(sp)
-    // save stack to kstackp
-    sd sp, 8*0(a0)
-    sd gp, 8*1(a0)
-    sd tp, 8*2(a0)
-    j lfi_restore_regs
-    ebreak
-
-// -------------------------------------------------------------------------
-// lfi_restore_regs
-// a0: LFIContext* ctx
-// -------------------------------------------------------------------------
-.p2align 4
-lfi_restore_regs:
-    // TODO: restore using uret
+// BUG:s0
+// restore_all(LFIContext *)
+// a0: LFIContext *
+.macro RESTORE_ALL
+    // load uepc
+    ld t0, PROC_REGS + 8*32(a0) // TODO: UEPC change location
+    csrw CSR_UEPC, t0
+    // load uscratch
+    csrw CSR_USCRATCH, a0
     ld ra,  PROC_REGS + 8*1(a0)
     ld sp,  PROC_REGS + 8*2(a0)
     ld gp,  PROC_REGS + 8*3(a0)
@@ -153,7 +97,7 @@ lfi_restore_regs:
     ld t2,  PROC_REGS + 8*7(a0)
     ld s0,  PROC_REGS + 8*8(a0)
     ld s1,  PROC_REGS + 8*9(a0)
-    // ld a0,  PROC_REGS + 8*10(a0)
+    # ld a0,  PROC_REGS + 8*10(a0)
     ld a1,  PROC_REGS + 8*11(a0)
     ld a2,  PROC_REGS + 8*12(a0)
     ld a3,  PROC_REGS + 8*13(a0)
@@ -176,7 +120,46 @@ lfi_restore_regs:
     ld t5,  PROC_REGS + 8*30(a0)
     ld t6,  PROC_REGS + 8*31(a0)
     ld a0,  PROC_REGS + 8*10(a0)
-    ret
+    uret
+.endm
+
+.p2align 4
+.global lfi_ctx_internal
+// This function places its return value in x8
+lfi_ctx_internal:
+	ebreak
+
+// -------------------------------------------------------------------------
+// lfi_ctx_entry(LFIContext* ctx, void* metadata)
+// a0: LFIContext* ctx
+// a1: void* metadata
+// -------------------------------------------------------------------------
+.p2align 4
+.global lfi_ctx_entry
+lfi_ctx_entry:
+    # csrw 0x040, a0 // CSR_USCRATCH: Make this only avalible in Trusted Area!
+    ENTER_DASICS
+    // 12 * 8 = 96 bytes
+    addi sp, sp, -96
+    // save callee-saved registers to stack
+    sd ra, 8*0(sp)
+    sd s0, 8*1(sp)
+    sd s1, 8*2(sp)
+    sd s2, 8*3(sp)
+    sd s3, 8*4(sp)
+    sd s4, 8*5(sp)
+    sd s5, 8*6(sp)
+    sd s6, 8*7(sp)
+    sd s7, 8*8(sp)
+    sd s8, 8*9(sp)
+    sd s9, 8*10(sp)
+    sd s10, 8*11(sp)
+    // save stack to kstackp
+    sd sp, 8*0(a0)
+    sd gp, 8*1(a0)
+    sd tp, 8*2(a0)
+    RESTORE_ALL
+    ebreak
 
 // -------------------------------------------------------------------------
 // lfi_asm_ctx_exit(void* kstackp, uint64_t code)
@@ -203,48 +186,14 @@ lfi_asm_ctx_exit:
     addi sp, sp, 96
     ret
 
-// Accelerated return for library sandboxes.
-.p2align 4
-.globl lfi_ret
-lfi_ret:
-	ebreak
-
-// Puts the sandbox's thread pointer in x0.
-.p2align 4
-.global lfi_get_tp
-lfi_get_tp:
-	ebreak
-
-// Sets the sandbox's thread pointer to x0 and clobbers REG_TEMP.
-.p2align 4
-.global lfi_set_tp
-lfi_set_tp:
-	ebreak
-
-
 .p2align 4
 .global dasics_ufault_entry
 dasics_ufault_entry:
-    SAVE_PROC
-    csrr t0, 0x8b3 // CSR_DFREASON
-    li t1, 1       // DFR_ECALL_DASICS_FAULT
-    beq t0, t1, 1f
-    ebreak
-1:
+    SAVE_ALL
     mv a0, s0
     jal lfi_syscall_handler
-    RESTORE_PROC
-
-
-.p2align 4
-.global lfi_syscall_entry
-lfi_syscall_entry:
-    ebreak
-    
-    
-.globl lfi_restore_partial_regs
-lfi_restore_partial_regs:
-	ebreak
+    mv a0, s0
+    RESTORE_ALL
 
 #ifndef __APPLE__
 .section .note.GNU-stack,"",@progbits

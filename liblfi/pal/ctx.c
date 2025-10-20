@@ -41,22 +41,22 @@ sysalloc(struct LFIPlatform* plat, uintptr_t base)
     return sys;
 }
 
-extern void lfi_syscall_entry(void)
-    asm ("lfi_syscall_entry");
-extern void lfi_get_tp(void)
-    asm ("lfi_get_tp");
-extern void lfi_set_tp(void)
-    asm ("lfi_set_tp");
-extern void lfi_ret(void)
-    asm ("lfi_ret");
+// extern void lfi_syscall_entry(void)
+//     asm ("lfi_syscall_entry");
+// extern void lfi_get_tp(void)
+//     asm ("lfi_get_tp");
+// extern void lfi_set_tp(void)
+//     asm ("lfi_set_tp");
+// extern void lfi_ret(void)
+//     asm ("lfi_ret");
 
 static void
 syssetup(struct LFIPlatform* plat, struct Sys* sys, uintptr_t base)
 {
-    sys->rtcalls[0] = (uintptr_t) &lfi_syscall_entry;
-    sys->rtcalls[1] = (uintptr_t) &lfi_get_tp;
-    sys->rtcalls[2] = (uintptr_t) &lfi_set_tp;
-    sys->rtcalls[3] = (uintptr_t) &lfi_ret;
+    // sys->rtcalls[0] = (uintptr_t) &lfi_syscall_entry;
+    // sys->rtcalls[1] = (uintptr_t) &lfi_get_tp;
+    // sys->rtcalls[2] = (uintptr_t) &lfi_set_tp;
+    // sys->rtcalls[3] = (uintptr_t) &lfi_ret;
     sys->base = base;
     // Only used in sysexternal mode (where there is a syspage per context)
     if (plat->opts.sysexternal)

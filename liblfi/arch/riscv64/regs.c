@@ -7,6 +7,7 @@ regs_init(struct TuxRegs* regs, uintptr_t entry, uintptr_t sp)
 {
     regs->sp = sp;
     regs->ra = entry;
+    regs->uepc = entry;
 }
 
 uintptr_t*

@@ -1,5 +1,6 @@
 #pragma once
 #include "proc.h"
+#include "myqueue.h"
 
 void yield(struct TuxThread* t);
 

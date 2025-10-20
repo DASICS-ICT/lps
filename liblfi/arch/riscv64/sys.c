@@ -20,8 +20,12 @@ arch_syshandle(struct LFIContext* ctx)
         switch (regs->dfreason) {
         case 2:
             DBG("load fault: uepc:%lx, addr:%lx", regs->uepc, regs->utval);
+            break;
         case 3:
             DBG("store fault: uepc:%lx, addr:%lx", regs->uepc, regs->utval);
+            break;
+        default:
+            DBG("DASICS fault(%lx): uepc:%lx, addr:%lx", regs->dfreason, regs->uepc, regs->utval);
         }
         unsigned long base = p->proc->p_info.base;
         DBG("elf load base:%lx", base);

@@ -146,13 +146,13 @@ EXPORT void
 lfi_ctx_exit(struct LFIContext* ctx, uint64_t val)
 {
     lfi_myctx = NULL;
-    lfi_asm_ctx_exit(ctx->kstackp, val);
+    lfi_asm_ctx_exit((void *)ctx->regs.host_sp, val);
 }
 
 EXPORT void
 lfi_ctx_pause(struct LFIContext* ctx, uint64_t val)
 {
-    lfi_asm_ctx_exit(ctx->kstackp, val);
+    lfi_asm_ctx_exit((void *)ctx->regs.host_sp, val);
 }
 
 EXPORT void

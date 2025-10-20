@@ -49,3 +49,5 @@ subprojects/libelf
 subprojects/libbreakpoint
 
 .cache
+
+.vscode/

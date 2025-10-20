@@ -1,5 +1,6 @@
 #include "config.h"
 #include "pal/arch/riscv64/regs.h"
+#include "pal/arch_asm.h"
 
 #define N_RTCALLS 256
 #define PROC_REGS 32
@@ -30,96 +31,95 @@
 // LFIContext* ctx in CSR_USCRATCH
 .macro SAVE_ALL
     csrrw s0, CSR_USCRATCH, s0 // CSR_USCRATCH
-    sd ra,  PROC_REGS + 8*1(s0)
-    sd sp,  PROC_REGS + 8*2(s0)
-    sd gp,  PROC_REGS + 8*3(s0)
-    sd tp,  PROC_REGS + 8*4(s0)
-    sd t0,  PROC_REGS + 8*5(s0)
-    sd t1,  PROC_REGS + 8*6(s0)
-    sd t2,  PROC_REGS + 8*7(s0)
-    // sd s0,  PROC_REGS + 8*8(s0)
-    sd s1,  PROC_REGS + 8*9(s0)
-    sd a0,  PROC_REGS + 8*10(s0)
-    sd a1,  PROC_REGS + 8*11(s0)
-    sd a2,  PROC_REGS + 8*12(s0)
-    sd a3,  PROC_REGS + 8*13(s0)
-    sd a4,  PROC_REGS + 8*14(s0)
-    sd a5,  PROC_REGS + 8*15(s0)
-    sd a6,  PROC_REGS + 8*16(s0)
-    sd a7,  PROC_REGS + 8*17(s0)
-    sd s2,  PROC_REGS + 8*18(s0)
-    sd s3,  PROC_REGS + 8*19(s0)
-    sd s4,  PROC_REGS + 8*20(s0)
-    sd s5,  PROC_REGS + 8*21(s0)
-    sd s6,  PROC_REGS + 8*22(s0)
-    sd s7,  PROC_REGS + 8*23(s0)
-    sd s8,  PROC_REGS + 8*24(s0)
-    sd s9,  PROC_REGS + 8*25(s0)
-    sd s10, PROC_REGS + 8*26(s0)
-    sd s11, PROC_REGS + 8*27(s0)
-    sd t3,  PROC_REGS + 8*28(s0)
-    sd t4,  PROC_REGS + 8*29(s0)
-    sd t5,  PROC_REGS + 8*30(s0)
-    sd t6,  PROC_REGS + 8*31(s0)
+    sd ra,  OFFSET_RA(s0)
+    sd sp,  OFFSET_SP(s0)
+    sd gp,  OFFSET_GP(s0)
+    sd tp,  OFFSET_TP(s0)
+    sd t0,  OFFSET_T0(s0)
+    sd t1,  OFFSET_T1(s0)
+    sd t2,  OFFSET_T2(s0)
+    // sd s0,  OFFSET_S0(s0)
+    sd s1,  OFFSET_S1(s0)
+    sd a0,  OFFSET_A0(s0)
+    sd a1,  OFFSET_A1(s0)
+    sd a2,  OFFSET_A2(s0)
+    sd a3,  OFFSET_A3(s0)
+    sd a4,  OFFSET_A4(s0)
+    sd a5,  OFFSET_A5(s0)
+    sd a6,  OFFSET_A6(s0)
+    sd a7,  OFFSET_A7(s0)
+    sd s2,  OFFSET_S2(s0)
+    sd s3,  OFFSET_S3(s0)
+    sd s4,  OFFSET_S4(s0)
+    sd s5,  OFFSET_S5(s0)
+    sd s6,  OFFSET_S6(s0)
+    sd s7,  OFFSET_S7(s0)
+    sd s8,  OFFSET_S8(s0)
+    sd s9,  OFFSET_S9(s0)
+    sd s10, OFFSET_S10(s0)
+    sd s11, OFFSET_S11(s0)
+    sd t3,  OFFSET_T3(s0)
+    sd t4,  OFFSET_T4(s0)
+    sd t5,  OFFSET_T5(s0)
+    sd t6,  OFFSET_T6(s0)
     // save s0
     csrr t0, CSR_USCRATCH
-    sd t0,  PROC_REGS + 8*8(s0)
+    sd t0,  OFFSET_S0(s0)
     // save uepc
     csrr t0, CSR_UEPC
-    sd t0,  PROC_REGS + 8*32(s0) // TODO: UEPC change location
+    sd t0,  OFFSET_UPEC(s0)
     // save utval
     csrr t0, CSR_UTVAL
-    sd t0,  PROC_REGS + 8*33(s0)
+    sd t0,  OFFSET_UTVAL(s0)
     // save dfreason
     csrr t0, CSR_DFREASON
-    sd t0,  PROC_REGS + 8*34(s0)
+    sd t0,  OFFSET_DFREN(s0)
     // change into runtime's sp, gp, tp
-    ld sp, 0(s0)
-    ld gp, 8(s0)
-    ld tp, 16(s0)
+    ld sp, OFFSET_KSP(s0)
+    ld gp, OFFSET_KGP(s0)
+    ld tp, OFFSET_KTP(s0)
 .endm
 
-// BUG:s0
 // restore_all(LFIContext *)
 // a0: LFIContext *
 .macro RESTORE_ALL
-    // load uepc
-    ld t0, PROC_REGS + 8*32(a0) // TODO: UEPC change location
-    csrw CSR_UEPC, t0
-    // load uscratch
+    // save uscratch
     csrw CSR_USCRATCH, a0
-    ld ra,  PROC_REGS + 8*1(a0)
-    ld sp,  PROC_REGS + 8*2(a0)
-    ld gp,  PROC_REGS + 8*3(a0)
-    ld tp,  PROC_REGS + 8*4(a0)
-    ld t0,  PROC_REGS + 8*5(a0)
-    ld t1,  PROC_REGS + 8*6(a0)
-    ld t2,  PROC_REGS + 8*7(a0)
-    ld s0,  PROC_REGS + 8*8(a0)
-    ld s1,  PROC_REGS + 8*9(a0)
-    # ld a0,  PROC_REGS + 8*10(a0)
-    ld a1,  PROC_REGS + 8*11(a0)
-    ld a2,  PROC_REGS + 8*12(a0)
-    ld a3,  PROC_REGS + 8*13(a0)
-    ld a4,  PROC_REGS + 8*14(a0)
-    ld a5,  PROC_REGS + 8*15(a0)
-    ld a6,  PROC_REGS + 8*16(a0)
-    ld a7,  PROC_REGS + 8*17(a0)
-    ld s2,  PROC_REGS + 8*18(a0)
-    ld s3,  PROC_REGS + 8*19(a0)
-    ld s4,  PROC_REGS + 8*20(a0)
-    ld s5,  PROC_REGS + 8*21(a0)
-    ld s6,  PROC_REGS + 8*22(a0)
-    ld s7,  PROC_REGS + 8*23(a0)
-    ld s8,  PROC_REGS + 8*24(a0)
-    ld s9,  PROC_REGS + 8*25(a0)
-    ld s10, PROC_REGS + 8*26(a0)
-    ld s11, PROC_REGS + 8*27(a0)
-    ld t3,  PROC_REGS + 8*28(a0)
-    ld t4,  PROC_REGS + 8*29(a0)
-    ld t5,  PROC_REGS + 8*30(a0)
-    ld t6,  PROC_REGS + 8*31(a0)
-    ld a0,  PROC_REGS + 8*10(a0)
+    // load uepc
+    ld t0, OFFSET_UPEC(a0)
+    csrw CSR_UEPC, t0
+    ld ra,  OFFSET_RA(a0)
+    ld sp,  OFFSET_SP(a0)
+    ld gp,  OFFSET_GP(a0)
+    ld tp,  OFFSET_TP(a0)
+    ld t0,  OFFSET_T0(a0)
+    ld t1,  OFFSET_T1(a0)
+    ld t2,  OFFSET_T2(a0)
+    ld s0,  OFFSET_S0(a0)
+    ld s1,  OFFSET_S1(a0)
+    // ld a0,  OFFSET_A0(a0)
+    ld a1,  OFFSET_A1(a0)
+    ld a2,  OFFSET_A2(a0)
+    ld a3,  OFFSET_A3(a0)
+    ld a4,  OFFSET_A4(a0)
+    ld a5,  OFFSET_A5(a0)
+    ld a6,  OFFSET_A6(a0)
+    ld a7,  OFFSET_A7(a0)
+    ld s2,  OFFSET_S2(a0)
+    ld s3,  OFFSET_S3(a0)
+    ld s4,  OFFSET_S4(a0)
+    ld s5,  OFFSET_S5(a0)
+    ld s6,  OFFSET_S6(a0)
+    ld s7,  OFFSET_S7(a0)
+    ld s8,  OFFSET_S8(a0)
+    ld s9,  OFFSET_S9(a0)
+    ld s10, OFFSET_S10(a0)
+    ld s11, OFFSET_S11(a0)
+    ld t3,  OFFSET_T3(a0)
+    ld t4,  OFFSET_T4(a0)
+    ld t5,  OFFSET_T5(a0)
+    ld t6,  OFFSET_T6(a0)
+    ld a0,  OFFSET_A0(a0)
     uret
 .endm
 

@@ -46,10 +46,6 @@ struct BoundCSR {
 };
 
 struct LFIContext {
-    void* kstackp;
-    void* kgp;
-    void* ktp;
-    uintptr_t _pad;
     struct TuxRegs regs;
     void* ctxp;
     struct Sys* sys;

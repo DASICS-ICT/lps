@@ -74,6 +74,13 @@ typedef struct TuxRegs {
 #elif defined(__riscv) && __riscv_xlen == 64
 
 typedef struct TuxRegs {
+    // Host context registers
+    uint64_t host_sp;
+    uint64_t host_gp;
+    uint64_t host_tp;
+    uint64_t _pad;
+
+    // RISC-V general purpose registers
     uint64_t zero;
     uint64_t ra;
     uint64_t sp;
@@ -106,6 +113,11 @@ typedef struct TuxRegs {
 	uint64_t t4;
 	uint64_t t5;
 	uint64_t t6;
+
+    // Floating point registers
+    uint64_t f[32];
+
+    // DASICS user registers
     uint64_t uepc;    // the entrance of ctx
     uint64_t utval;
     uint64_t dfreason;

@@ -13,6 +13,7 @@ srcs += files(
   'sys_none.c',
   'strace.c',
   'sys_pipe.c',
+  'sys_runtime.c',
 )
 
 if get_option('liblfi-threads')

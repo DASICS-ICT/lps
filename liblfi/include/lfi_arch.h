@@ -106,6 +106,9 @@ typedef struct TuxRegs {
 	uint64_t t4;
 	uint64_t t5;
 	uint64_t t6;
+    uint64_t uepc;    // the entrance of ctx
+    uint64_t utval;
+    uint64_t dfreason;
 }LFIRegs;
 
 #endif

@@ -121,6 +121,12 @@ typedef struct TuxRegs {
     uint64_t uepc;    // the entrance of ctx
     uint64_t utval;
     uint64_t dfreason;
+
+    // DASICS bound registers
+    uint64_t memcfg;
+    uint64_t membound[16][2];
+    uint64_t jmpcfg;
+    uint64_t jmpbound[4][2];
 }LFIRegs;
 
 #endif

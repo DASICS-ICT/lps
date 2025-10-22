@@ -97,3 +97,5 @@ if not get_option('tools-only')
   endif
   subdir('lfi-run')
 endif
+
+subdir('pipe-test')

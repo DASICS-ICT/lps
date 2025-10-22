@@ -1,16 +1,25 @@
 #include "proc.h"
 #include "myqueue.h"
+#include "pal/platform.h"
 
-QUEUE_INIT(g_runq);
+static QUEUE_INIT(g_runq);
 
 void yield(struct TuxThread* t) {
-    lfi_ctx_pause(t->p_ctx, 0);
+    lfi_ctx_pause(t->p_ctx, 1); // 1 means pause
 }
 
 void block(struct queue* q, struct TuxThread* t, enum TState s) {
     t->t_state = s;
     queue_enqueue(q, &t->list);
     yield(t);
+}
+
+void block_here(struct queue* q) {
+    struct TuxThread* p = (struct TuxThread*) lfi_ctx_data(lfi_get_myctx());
+    p->t_state = THREAD_BOLCKED;
+
+    queue_enqueue(q, &p->list);
+    yield(p);
 }
 
 void wake_all(struct queue* q) {
@@ -47,7 +56,7 @@ EXPORT void scheduler(struct TuxThread* t) {
 
         int code = lfi_tux_proc_run(p);
 
-        printf("scheduler: thread %p exit with code %d", p, code);
+        // fprintf(stderr, "scheduler: thread %p exit with code %d\n", p, code);
 
         if (main_thread->t_state == THREAD_EXITED) {
             return;
@@ -57,4 +66,41 @@ EXPORT void scheduler(struct TuxThread* t) {
             queue_enqueue(&g_runq, &p->list);
         }
     }
+}
+
+// 简单轮转调度器，队列空时结束
+
+EXPORT void scheduler_add_task(struct TuxThread* p) {
+    queue_enqueue(&g_runq, &p->list);
+}
+
+static struct TuxThread* get_next_runable() {
+    if (queue_is_empty(&g_runq)) {
+        return NULL;       
+    }
+    struct list_node *node = queue_dequeue(&g_runq);
+    struct TuxThread *p = list_entry(node, struct TuxThread, list);
+
+    return p;
+}
+
+EXPORT void scheduler_begin() {
+    // 简单轮转调度器，队列空时结束
+    fprintf(stderr, "[scheduler]: begin scheduling\n");
+    while(true) {
+        struct TuxThread* p = get_next_runable();
+
+        if (p == NULL) return;
+
+        int code = lfi_tux_proc_run(p);
+
+        if (p->t_state == THREAD_RUNNABLE) {
+            queue_enqueue(&g_runq, &p->list);
+        }
+
+        if (p->t_state == THREAD_EXITED) {
+            fprintf(stderr, "[scheduler]: thread %p exit with code %d\n", p, code);
+        }
+    }
+    fprintf(stderr, "[scheduler]: end scheduling\n");
 }

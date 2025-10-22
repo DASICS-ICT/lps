@@ -39,6 +39,7 @@ procnewempty(void)
         goto err;
     p->proc = proc;
     p->tid = nexttid();
+    p->t_state = THREAD_RUNNABLE;
     return p;
 
 err:
@@ -319,4 +320,10 @@ EXPORT uintptr_t
 lfi_tux_proc_stack(struct TuxThread* p)
 {
     return p->stack;
+}
+
+
+EXPORT void
+proc_fd_assign(struct TuxThread* p, int fd, struct FDFile* ff) {
+    fdassign(&p->proc->fdtable, fd, ff);
 }

@@ -154,7 +154,7 @@ main(int argc, char** argv)
     // scheduler(p);
 
     if (args.opts.verbose)
-        fprintf(stderr, "[lfi-run] exited with code: %ld\n", (long) 0);
+        fprintf(stderr, "[lfi-run] exited with code: %ld\n", (long) code);
 
     return (int) 0;
 }

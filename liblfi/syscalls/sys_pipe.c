@@ -5,6 +5,7 @@
 
 #include "myqueue.h"
 #include "schedule.h"
+#include "print.h"
 
 enum {
     NPIPE = 64,
@@ -21,8 +22,6 @@ struct Pipe {
     size_t nread;
     size_t nwrite;
 
-    struct TuxThread *thread;
-
     struct queue readq;
     struct queue writeq;
 };
@@ -31,9 +30,12 @@ struct Pipe pipes[NPIPE];
 
 ssize_t pipe_read(void *dev, uint8_t* buf, size_t n) {
     struct Pipe* pipe = (struct Pipe*) dev;
+    DBG("[pipe_read]: pipe:%p, nread:%u, nwrite:%u", pipe, pipe->nread, pipe->nwrite);
 
     while (pipe->nread == pipe->nwrite && pipe->writeopen) {
-        block(&pipe->readq, pipe->thread, THREAD_BOLCKED);
+        DBG("[pipe_read]: pipe:%p, blocked", pipe);
+        block_here(&pipe->readq);
+        DBG("[pipe_read]: pipe:%p, waked up", pipe);
     }
 
     ssize_t i = 0;
@@ -43,12 +45,14 @@ ssize_t pipe_read(void *dev, uint8_t* buf, size_t n) {
         buf[i] = pipe->data[pipe->nread++ % PIPESZ];
     }
 
+    DBG("[pipe_read]: pipe:%p, nread:%u, nwrite:%u", pipe, pipe->nread, pipe->nwrite);
     wake_all(&pipe->writeq);
     return i;
 }
 
 ssize_t pipe_write(void *dev, uint8_t* buf, size_t n) {
     struct Pipe* pipe = (struct Pipe*) dev;
+    DBG("[pipe_write]: pipe:%p, nread:%u, nwrite:%u", pipe, pipe->nread, pipe->nwrite);
     
     ssize_t i = 0;
     while (i < n) {
@@ -58,41 +62,47 @@ ssize_t pipe_write(void *dev, uint8_t* buf, size_t n) {
         if (pipe->nwrite == pipe->nread + PIPESZ) {
             // pipe buf is full
             wake_all(&pipe->readq);
-            block(&pipe->writeq, pipe->thread, THREAD_BOLCKED); // block here
+            DBG("[pipe_write]: pipe:%p, blocked", pipe);
+            block_here(&pipe->writeq);
+            DBG("[pipe_write]: pipe:%p, waked up", pipe);
         } else {
             pipe->data[pipe->nwrite++ % PIPESZ] = buf[i];
             i++;
         }
     }
     wake_all(&pipe->readq);
+    DBG("[pipe_write]: pipe:%p, nread:%u, nwrite:%u", pipe, pipe->nread, pipe->nwrite);
     return i;
 }
 
-bool pipe_new(struct TuxThread* p, struct FDFile **f0, struct FDFile **f1) {
-    struct Pipe* pipe;
+bool pipe_new(struct FDFile **f0, struct FDFile **f1) {
+    struct Pipe* pipe = NULL;
     for (size_t i = 0; i < NPIPE; ++i) {
         if (!pipes[i].allocated) {
-            pipe = &pipe[i];
+            pipe = &pipes[i];
+            break;
         }
     }
     if (!pipe) {
         return false;
     }
+    pipe->allocated = true;
     pipe->readopen = true;
     pipe->writeopen = true;
     pipe->nread = 0;
     pipe->nwrite = 0;
-    pipe->thread = p;
     queue_init(&pipe->readq);
     queue_init(&pipe->writeq);
 
-    struct FDFile *p0, *p1;
+    struct FDFile *p0 = malloc(sizeof(struct FDFile));
+    struct FDFile *p1 = malloc(sizeof(struct FDFile));
 
-    p0 = malloc(sizeof(struct FDFile));
-    p1 = malloc(sizeof(struct FDFile));
-
-    if(!p0) return false;
+    if (!p0) {
+        pipe->allocated = false;
+        return false;
+    }
     if(!p1) {
+        pipe->allocated = false;
         free(p0);
         return false;
     }
@@ -117,7 +127,7 @@ int sys_pipe2(struct TuxThread *p, uintptr_t pipefd, int flags) {
 
     struct FDFile *f0, *f1;
 
-    if (!pipe_new(p, &f0, &f1)) {
+    if (!pipe_new(&f0, &f1)) {
         goto err1;
     }
 

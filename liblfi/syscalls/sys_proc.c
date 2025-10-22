@@ -21,6 +21,7 @@ uintptr_t
 sys_exit(struct TuxThread* p, uint64_t code)
 {
     clearctid(p);
+    p->t_state = THREAD_EXITED;
     if (p->proc->tux->opts.pause_on_exit) {
         lfi_ctx_pause(p->p_ctx, code);
     } else {
@@ -32,6 +33,7 @@ sys_exit(struct TuxThread* p, uint64_t code)
 uintptr_t
 sys_exit_group(struct TuxThread* p, uint64_t code)
 {
+    p->t_state = THREAD_EXITED;
     // TODO: exit all threads
     if (p->proc->tux->opts.pause_on_exit)
         lfi_ctx_pause(p->p_ctx, code);

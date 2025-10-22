@@ -79,7 +79,14 @@ struct LFILibCalls {
 
 void* lfi_libcalls(void);
 
-void scheduler(struct TuxThread* t);
+void scheduler_add_task(struct TuxThread* p);
+
+void scheduler_begin();
+
+struct FDFile;
+struct FDTable;
+
+void proc_fd_assign(struct TuxThread* p, int fd, struct FDFile* ff);
 
 #ifdef __cplusplus
 }

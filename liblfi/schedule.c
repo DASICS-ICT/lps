@@ -3,9 +3,33 @@
 #include "pal/platform.h"
 
 static QUEUE_INIT(g_runq);
+static QUEUE_INIT(g_exitq);
 
-void yield(struct TuxThread* t) {
-    lfi_ctx_pause(t->p_ctx, 1); // 1 means pause
+static struct KContext sched_ctx;
+
+#define asm __asm__
+
+extern void kswitch(struct LFIContext* ctx, struct KContext *old, struct KContext *new)
+    asm("kswitch");
+
+static void kswitch_from_sched(struct TuxThread* p) {
+    lfi_set_myctx(p->p_ctx);
+    kswitch(p->p_ctx, &sched_ctx, &p->p_ctx->k_ctx);
+}
+
+static void kswitch_to_sched(struct TuxThread* p) {
+    kswitch(NULL, &p->p_ctx->k_ctx, &sched_ctx);
+}
+
+void yield(struct TuxThread* p) {
+    // lfi_ctx_pause(t->p_ctx, 1); // 1 means pause
+    kswitch_to_sched(p);
+}
+
+void block_on_exitq(struct TuxThread* p) {
+    p->t_state = THREAD_EXITED;
+    queue_enqueue(&g_exitq, &p->list);
+    yield(p);
 }
 
 void block(struct queue* q, struct TuxThread* t, enum TState s) {
@@ -92,14 +116,14 @@ EXPORT void scheduler_begin() {
 
         if (p == NULL) return;
 
-        int code = lfi_tux_proc_run(p);
+        kswitch_from_sched(p);
 
         if (p->t_state == THREAD_RUNNABLE) {
             queue_enqueue(&g_runq, &p->list);
         }
 
         if (p->t_state == THREAD_EXITED) {
-            fprintf(stderr, "[scheduler]: thread %p exit with code %d\n", p, code);
+            fprintf(stderr, "[scheduler]: thread %p exited\n", p);
         }
     }
     fprintf(stderr, "[scheduler]: end scheduling\n");

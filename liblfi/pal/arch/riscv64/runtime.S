@@ -189,7 +189,62 @@ dasics_ufault_entry:
     mv a0, s0
     jal lfi_syscall_handler
     mv a0, s0
+    ENTER_DASICS
     RESTORE_ALL
+
+
+// kswitch(void* p, KContext *old, KContext *new)
+.p2align 4
+.global kswitch
+kswitch:
+    // save old context
+    sd ra,  CONTEXT_RA(a1)
+    sd sp,  CONTEXT_SP(a1)
+    sd s0,  CONTEXT_S0(a1)
+    sd s1,  CONTEXT_S1(a1)
+    sd s2,  CONTEXT_S2(a1)
+    sd s3,  CONTEXT_S3(a1)
+    sd s4,  CONTEXT_S4(a1)
+    sd s5,  CONTEXT_S5(a1)
+    sd s6,  CONTEXT_S6(a1)
+    sd s7,  CONTEXT_S7(a1)
+    sd s8,  CONTEXT_S8(a1)
+    sd s9,  CONTEXT_S9(a1)
+    sd s10, CONTEXT_S10(a1)
+    sd s11, CONTEXT_S11(a1)
+    // load new context
+    ld ra,  CONTEXT_RA(a2)
+    ld sp,  CONTEXT_SP(a2)
+    ld s0,  CONTEXT_S0(a2)
+    ld s1,  CONTEXT_S1(a2)
+    ld s2,  CONTEXT_S2(a2)
+    ld s3,  CONTEXT_S3(a2)
+    ld s4,  CONTEXT_S4(a2)
+    ld s5,  CONTEXT_S5(a2)
+    ld s6,  CONTEXT_S6(a2)
+    ld s7,  CONTEXT_S7(a2)
+    ld s8,  CONTEXT_S8(a2)
+    ld s9,  CONTEXT_S9(a2)
+    ld s10, CONTEXT_S10(a2)
+    ld s11, CONTEXT_S11(a2)
+    ret
+
+// -------------------------------------------------------------------------
+// lps_ctx_entry(LFIContext* ctx)
+// a0: LFIContext* ctx
+// -------------------------------------------------------------------------
+.p2align 4
+.global lps_ctx_entry
+lps_ctx_entry:
+    // save k_ctx's sp, runtime's gp & tp
+    sd sp, OFFSET_KSP(a0)
+    sd gp, OFFSET_KGP(a0)
+    sd tp, OFFSET_KTP(a0)
+    ENTER_DASICS
+    RESTORE_ALL
+    ebreak
+
+
 
 #ifndef __APPLE__
 .section .note.GNU-stack,"",@progbits

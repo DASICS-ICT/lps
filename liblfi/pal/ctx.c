@@ -8,6 +8,11 @@
 #include "pal/platform.h"
 #include "pal/regs.h"
 
+static size_t
+mb(size_t n) {
+    return 1024 * 1024 * n;
+}
+
 // context for injecting clone calls
 pthread_mutex_t lfi_clonectx_lk = PTHREAD_MUTEX_INITIALIZER;
 struct LFIContext* lfi_clonectx;
@@ -23,6 +28,9 @@ extern uint64_t lfi_ctx_entry(struct LFIContext* ctx)
 
 extern void lfi_asm_ctx_exit(void* kstackp, uint64_t val)
     asm ("lfi_asm_ctx_exit");
+
+extern void lps_ctx_entry(struct LFIContext* ctx)
+    asm ("lps_ctx_entry");
 
 static struct Sys*
 sysalloc(struct LFIPlatform* plat, uintptr_t base)
@@ -87,6 +95,15 @@ lfi_ctx_new(struct LFIAddrSpace* as, void* ctxp, bool main)
     // }
     sys = NULL;
 
+    // init k_ctx
+    // every thread shoud have its own kstack
+    // when it's running in runtime
+    void* kstack = malloc(mb(2));
+    if (!kstack)
+        goto err;
+    
+    void* kstackp = kstack + mb(2);
+
     *ctx = (struct LFIContext) {
         .ctxp = ctxp,
         .sys = sys,
@@ -94,6 +111,7 @@ lfi_ctx_new(struct LFIAddrSpace* as, void* ctxp, bool main)
     };
 
     lfi_regs_init(&ctx->regs, as, ctx);
+    kcontext_init(&ctx->k_ctx, (uintptr_t)lps_ctx_entry, (uintptr_t)kstackp, (uintptr_t)kstack);
 
     return ctx;
 err:
@@ -188,4 +206,10 @@ EXPORT struct LFIContext*
 lfi_get_myctx(void)
 {
     return lfi_myctx;
+}
+
+EXPORT void
+lfi_set_myctx(struct LFIContext* ctx)
+{
+    lfi_myctx = ctx;
 }

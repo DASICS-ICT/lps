@@ -3,6 +3,7 @@
 #include <limits.h>
 
 #include "syscalls/syscalls.h"
+#include "schedule.h"
 
 static void
 clearctid(struct TuxThread* p)
@@ -21,23 +22,24 @@ uintptr_t
 sys_exit(struct TuxThread* p, uint64_t code)
 {
     clearctid(p);
-    p->t_state = THREAD_EXITED;
-    if (p->proc->tux->opts.pause_on_exit) {
-        lfi_ctx_pause(p->p_ctx, code);
-    } else {
-        lfi_ctx_exit(p->p_ctx, code);
-    }
+    // if (p->proc->tux->opts.pause_on_exit) {
+    //     lfi_ctx_pause(p->p_ctx, code);
+    // } else {
+    //     lfi_ctx_exit(p->p_ctx, code);
+    // }
+    block_on_exitq(p);
     assert(!"unreachable");
 }
 
 uintptr_t
 sys_exit_group(struct TuxThread* p, uint64_t code)
 {
-    p->t_state = THREAD_EXITED;
-    // TODO: exit all threads
-    if (p->proc->tux->opts.pause_on_exit)
-        lfi_ctx_pause(p->p_ctx, code);
-    else
-        lfi_ctx_exit(p->p_ctx, code);
+    // p->t_state = THREAD_EXITED;
+    // // TODO: exit all threads
+    // if (p->proc->tux->opts.pause_on_exit)
+    //     lfi_ctx_pause(p->p_ctx, code);
+    // else
+    //     lfi_ctx_exit(p->p_ctx, code);
+    block_on_exitq(p);
     assert(!"unreachable");
 }

@@ -15,3 +15,5 @@ void block_here(struct queue* q);
 void scheduler_add_task(struct TuxThread* p);
 
 void scheduler_begin();
+
+void block_on_exitq(struct TuxThread* p);

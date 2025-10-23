@@ -99,3 +99,4 @@ if not get_option('tools-only')
 endif
 
 subdir('pipe-test')
+subdir('lps-run')

@@ -56,42 +56,6 @@ void wake_all(struct queue* q) {
     }
 }
 
-struct TuxThread* runnable_proc() {
-    while (true) {
-        if (!queue_is_empty(&g_runq)) {
-            struct list_node *node = queue_dequeue(&g_runq);
-            struct TuxThread *t = list_entry(node, struct TuxThread, list);
-
-            return t;
-        }
-
-        // wating?
-    }
-}
-
-EXPORT void scheduler(struct TuxThread* t) {
-    t->t_state = THREAD_RUNNABLE;
-    queue_enqueue(&g_runq, &t->list);
-
-    struct TuxThread* main_thread = t;
-
-    while(true) {
-        struct TuxThread* p = runnable_proc();
-
-        int code = lfi_tux_proc_run(p);
-
-        // fprintf(stderr, "scheduler: thread %p exit with code %d\n", p, code);
-
-        if (main_thread->t_state == THREAD_EXITED) {
-            return;
-        }
-
-        if (p->t_state == THREAD_RUNNABLE) {
-            queue_enqueue(&g_runq, &p->list);
-        }
-    }
-}
-
 // 简单轮转调度器，队列空时结束
 
 EXPORT void scheduler_add_task(struct TuxThread* p) {

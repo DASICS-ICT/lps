@@ -40,6 +40,7 @@ struct ElfTable {
 
 struct LFIContext {
     struct TuxRegs regs;
+    struct KContext k_ctx;
     void* ctxp;
     struct Sys* sys;
     struct LFIAddrSpace* as;

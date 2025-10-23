@@ -27,3 +27,15 @@ _Static_assert(offsetof(struct TuxRegs, jmpcfg) == OFFSET_JMPCFG,
     "incorrect REGS offset");
 _Static_assert(offsetof(struct TuxRegs, jmpbound) == OFFSET_JMPBOUND0LO,
     "incorrect REGS offset");
+
+_Static_assert(offsetof(struct KContext, ra) == CONTEXT_RA,
+    "incorrect REGS offset");
+
+_Static_assert(offsetof(struct KContext, sp) == CONTEXT_SP,
+    "incorrect REGS offset");
+
+_Static_assert(offsetof(struct KContext, s0) == CONTEXT_S0,
+    "incorrect REGS offset");
+
+_Static_assert(offsetof(struct KContext, s11) == CONTEXT_S11,
+    "incorrect REGS offset");

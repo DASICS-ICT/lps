@@ -85,3 +85,18 @@
 #define OFFSET_JMPBOUND2HI   880
 #define OFFSET_JMPBOUND3LO   888
 #define OFFSET_JMPBOUND3HI   896 
+
+#define CONTEXT_RA 0
+#define CONTEXT_SP 8
+#define CONTEXT_S0 16
+#define CONTEXT_S1 24
+#define CONTEXT_S2 32
+#define CONTEXT_S3 40
+#define CONTEXT_S4 48
+#define CONTEXT_S5 56
+#define CONTEXT_S6 64
+#define CONTEXT_S7 72
+#define CONTEXT_S8 80
+#define CONTEXT_S9 88
+#define CONTEXT_S10 96
+#define CONTEXT_S11 104

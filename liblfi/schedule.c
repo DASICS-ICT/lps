@@ -12,8 +12,13 @@ static struct KContext sched_ctx;
 extern void kswitch(struct LFIContext* ctx, struct KContext *old, struct KContext *new)
     asm("kswitch");
 
+extern void lps_load_dasics(struct LFIContext* ctx)
+    asm ("lps_load_dasics");
+
 static void kswitch_from_sched(struct TuxThread* p) {
     lfi_set_myctx(p->p_ctx);
+    // load dasics registers
+    lps_load_dasics(p->p_ctx);
     kswitch(p->p_ctx, &sched_ctx, &p->p_ctx->k_ctx);
 }
 

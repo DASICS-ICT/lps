@@ -15,6 +15,11 @@
 #include "breakpoint.h"
 #endif
 
+#define asm __asm__
+
+extern void lps_init_dasics()
+    asm ("lps_init_dasics");
+
 EXPORT void
 lfi_tux_syscall(struct LFIContext* ctx)
 {
@@ -52,6 +57,7 @@ lfi_tux_new(struct LFIPlatform* plat, struct TuxOptions opts)
     tux->fstderr->refs++;
 
     lfi_sys_handler(plat, &lfi_tux_syscall);
+    lps_init_dasics();
     return tux;
 err3:
     free(tux->fstdout);

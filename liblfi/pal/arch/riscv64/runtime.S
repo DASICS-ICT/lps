@@ -60,6 +60,40 @@
     sd t4,  OFFSET_T4(s0)
     sd t5,  OFFSET_T5(s0)
     sd t6,  OFFSET_T6(s0)
+
+    fsd f0, OFFSET_F+8*0(s0)
+    fsd f1, OFFSET_F+8*1(s0)
+    fsd f2, OFFSET_F+8*2(s0)
+    fsd f3, OFFSET_F+8*3(s0)
+    fsd f4, OFFSET_F+8*4(s0)
+    fsd f5, OFFSET_F+8*5(s0)
+    fsd f6, OFFSET_F+8*6(s0)
+    fsd f7, OFFSET_F+8*7(s0)
+    fsd f8, OFFSET_F+8*8(s0)
+    fsd f9, OFFSET_F+8*9(s0)
+    fsd f10, OFFSET_F+8*10(s0)
+    fsd f11, OFFSET_F+8*11(s0)
+    fsd f12, OFFSET_F+8*12(s0)
+    fsd f13, OFFSET_F+8*13(s0)
+    fsd f14, OFFSET_F+8*14(s0)
+    fsd f15, OFFSET_F+8*15(s0)
+    fsd f16, OFFSET_F+8*16(s0)
+    fsd f17, OFFSET_F+8*17(s0)
+    fsd f18, OFFSET_F+8*18(s0)
+    fsd f19, OFFSET_F+8*19(s0)
+    fsd f20, OFFSET_F+8*20(s0)
+    fsd f21, OFFSET_F+8*21(s0)
+    fsd f22, OFFSET_F+8*22(s0)
+    fsd f23, OFFSET_F+8*23(s0)
+    fsd f24, OFFSET_F+8*24(s0)
+    fsd f25, OFFSET_F+8*25(s0)
+    fsd f26, OFFSET_F+8*26(s0)
+    fsd f27, OFFSET_F+8*27(s0)
+    fsd f28, OFFSET_F+8*28(s0)
+    fsd f29, OFFSET_F+8*29(s0)
+    fsd f30, OFFSET_F+8*30(s0)
+    fsd f31, OFFSET_F+8*31(s0)
+
     // save s0
     csrr t0, CSR_USCRATCH
     sd t0,  OFFSET_S0(s0)
@@ -117,6 +151,40 @@
     ld t4,  OFFSET_T4(a0)
     ld t5,  OFFSET_T5(a0)
     ld t6,  OFFSET_T6(a0)
+
+    fld f0, OFFSET_F+8*0(a0)
+    fld f1, OFFSET_F+8*1(a0)
+    fld f2, OFFSET_F+8*2(a0)
+    fld f3, OFFSET_F+8*3(a0)
+    fld f4, OFFSET_F+8*4(a0)
+    fld f5, OFFSET_F+8*5(a0)
+    fld f6, OFFSET_F+8*6(a0)
+    fld f7, OFFSET_F+8*7(a0)
+    fld f8, OFFSET_F+8*8(a0)
+    fld f9, OFFSET_F+8*9(a0)
+    fld f10, OFFSET_F+8*10(a0)
+    fld f11, OFFSET_F+8*11(a0)
+    fld f12, OFFSET_F+8*12(a0)
+    fld f13, OFFSET_F+8*13(a0)
+    fld f14, OFFSET_F+8*14(a0)
+    fld f15, OFFSET_F+8*15(a0)
+    fld f16, OFFSET_F+8*16(a0)
+    fld f17, OFFSET_F+8*17(a0)
+    fld f18, OFFSET_F+8*18(a0)
+    fld f19, OFFSET_F+8*19(a0)
+    fld f20, OFFSET_F+8*20(a0)
+    fld f21, OFFSET_F+8*21(a0)
+    fld f22, OFFSET_F+8*22(a0)
+    fld f23, OFFSET_F+8*23(a0)
+    fld f24, OFFSET_F+8*24(a0)
+    fld f25, OFFSET_F+8*25(a0)
+    fld f26, OFFSET_F+8*26(a0)
+    fld f27, OFFSET_F+8*27(a0)
+    fld f28, OFFSET_F+8*28(a0)
+    fld f29, OFFSET_F+8*29(a0)
+    fld f30, OFFSET_F+8*30(a0)
+    fld f31, OFFSET_F+8*31(a0)
+
     ld a0,  OFFSET_A0(a0)
     uret
 .endm
@@ -189,7 +257,6 @@ dasics_ufault_entry:
     mv a0, s0
     jal lfi_syscall_handler
     mv a0, s0
-    ENTER_DASICS
     RESTORE_ALL
 
 
@@ -240,10 +307,111 @@ lps_ctx_entry:
     sd sp, OFFSET_KSP(a0)
     sd gp, OFFSET_KGP(a0)
     sd tp, OFFSET_KTP(a0)
-    ENTER_DASICS
     RESTORE_ALL
     ebreak
 
+// void init_dasics()
+.p2align 4
+.global lps_init_dasics
+lps_init_dasics:
+    la t0, dasics_ufault_entry
+    csrw CSR_UTVEC, t0
+    ret
+
+// void lps_load_dasics(struct LFIContext* ctx)
+.p2align 4
+.global lps_load_dasics
+lps_load_dasics:
+    // libbound
+    ld t0, OFFSET_MEMBOUND0LO(a0)
+    ld t1, OFFSET_MEMBOUND0HI(a0)
+    csrw CSR_DLBOUND0LO, t0
+    csrw CSR_DLBOUND0HI, t1
+    ld t0, OFFSET_MEMBOUND1LO(a0)
+    ld t1, OFFSET_MEMBOUND1HI(a0)
+    csrw CSR_DLBOUND1LO, t0
+    csrw CSR_DLBOUND1HI, t1
+    ld t0, OFFSET_MEMBOUND2LO(a0)
+    ld t1, OFFSET_MEMBOUND2HI(a0)
+    csrw CSR_DLBOUND2LO, t0
+    csrw CSR_DLBOUND2HI, t1
+    ld t0, OFFSET_MEMBOUND3LO(a0)
+    ld t1, OFFSET_MEMBOUND3HI(a0)
+    csrw CSR_DLBOUND3LO, t0
+    csrw CSR_DLBOUND3HI, t1
+    ld t0, OFFSET_MEMBOUND4LO(a0)
+    ld t1, OFFSET_MEMBOUND4HI(a0)
+    csrw CSR_DLBOUND4LO, t0
+    csrw CSR_DLBOUND4HI, t1
+    ld t0, OFFSET_MEMBOUND5LO(a0)
+    ld t1, OFFSET_MEMBOUND5HI(a0)
+    csrw CSR_DLBOUND5LO, t0
+    csrw CSR_DLBOUND5HI, t1
+    ld t0, OFFSET_MEMBOUND6LO(a0)
+    ld t1, OFFSET_MEMBOUND6HI(a0)
+    csrw CSR_DLBOUND6LO, t0
+    csrw CSR_DLBOUND6HI, t1
+    ld t0, OFFSET_MEMBOUND7LO(a0)
+    ld t1, OFFSET_MEMBOUND7HI(a0)
+    csrw CSR_DLBOUND7LO, t0
+    csrw CSR_DLBOUND7HI, t1
+    ld t0, OFFSET_MEMBOUND8LO(a0)
+    ld t1, OFFSET_MEMBOUND8HI(a0)
+    csrw CSR_DLBOUND8LO, t0
+    csrw CSR_DLBOUND8HI, t1
+    ld t0, OFFSET_MEMBOUND9LO(a0)
+    ld t1, OFFSET_MEMBOUND9HI(a0)
+    csrw CSR_DLBOUND9LO, t0
+    csrw CSR_DLBOUND9HI, t1
+    ld t0, OFFSET_MEMBOUND10LO(a0)
+    ld t1, OFFSET_MEMBOUND10HI(a0)
+    csrw CSR_DLBOUND10LO, t0
+    csrw CSR_DLBOUND10HI, t1
+    ld t0, OFFSET_MEMBOUND11LO(a0)
+    ld t1, OFFSET_MEMBOUND11HI(a0)
+    csrw CSR_DLBOUND11LO, t0
+    csrw CSR_DLBOUND11HI, t1
+    ld t0, OFFSET_MEMBOUND12LO(a0)
+    ld t1, OFFSET_MEMBOUND12HI(a0)
+    csrw CSR_DLBOUND12LO, t0
+    csrw CSR_DLBOUND12HI, t1
+    ld t0, OFFSET_MEMBOUND13LO(a0)
+    ld t1, OFFSET_MEMBOUND13HI(a0)
+    csrw CSR_DLBOUND13LO, t0
+    csrw CSR_DLBOUND13HI, t1
+    ld t0, OFFSET_MEMBOUND14LO(a0)
+    ld t1, OFFSET_MEMBOUND14HI(a0)
+    csrw CSR_DLBOUND14LO, t0
+    csrw CSR_DLBOUND14HI, t1
+    ld t0, OFFSET_MEMBOUND15LO(a0)
+    ld t1, OFFSET_MEMBOUND15HI(a0)
+    csrw CSR_DLBOUND15LO, t0
+    csrw CSR_DLBOUND15HI, t1
+
+    // jmpbound
+    ld t0, OFFSET_JMPBOUND0LO(a0)
+    ld t1, OFFSET_JMPBOUND0HI(a0)
+    csrw CSR_DJBOUND0LO, t0
+    csrw CSR_DJBOUND0HI, t1
+    ld t2, OFFSET_JMPBOUND1LO(a0)
+    ld t3, OFFSET_JMPBOUND1HI(a0)
+    csrw CSR_DJBOUND1LO, t2
+    csrw CSR_DJBOUND1HI, t3
+    ld t4, OFFSET_JMPBOUND2LO(a0)
+    ld t5, OFFSET_JMPBOUND2HI(a0)
+    csrw CSR_DJBOUND2LO, t4
+    csrw CSR_DJBOUND2HI, t5
+    ld t6, OFFSET_JMPBOUND3LO(a0)
+    ld t0, OFFSET_JMPBOUND3HI(a0)
+    csrw CSR_DJBOUND3LO, t6
+    csrw CSR_DJBOUND3HI, t0
+    
+    // cfg
+    ld t0, OFFSET_MEMCFG(a0)
+    ld t1, OFFSET_JMPCFG(a0)
+    csrw CSR_DLCFG, t0
+    csrw CSR_DJCFG, t1
+    ret
 
 
 #ifndef __APPLE__

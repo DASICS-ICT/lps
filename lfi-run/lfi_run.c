@@ -149,12 +149,10 @@ main(int argc, char** argv)
         fprintf(stderr, "error creating process\n");
         return 1;
     }
-    printf("start running\n");
-    uint64_t code = lfi_tux_proc_run(p);
-    // scheduler(p);
+    
+    scheduler_add_task(p);
 
-    if (args.opts.verbose)
-        fprintf(stderr, "[lfi-run] exited with code: %ld\n", (long) code);
+    scheduler_begin();
 
     return (int) 0;
 }

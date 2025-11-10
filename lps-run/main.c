@@ -33,7 +33,7 @@ kb(size_t x)
 int
 main(int argc, char** argv)
 {
-    if (argc != 2) {
+    if (argc < 2) {
         fprintf(stderr, "Usage: %s [ELF]\n", argv[0]);
         return 1;
     }
@@ -48,7 +48,7 @@ main(int argc, char** argv)
 
     struct Tux* tux = lfi_tux_new(plat, (struct TuxOptions) {
         .pagesize = kb(4),
-        .verbose = true,
+        .verbose = false,
         .stacksize = mb(2),
     });
 
@@ -58,7 +58,7 @@ main(int argc, char** argv)
         return 1;
     }
 
-    struct TuxThread* p = lfi_tux_proc_new(tux, elf.data, elf.size, 0, NULL);
+    struct TuxThread* p = lfi_tux_proc_new(tux, elf.data, elf.size, argc - 1, argv + 1);
 
     scheduler_add_task(p);
 

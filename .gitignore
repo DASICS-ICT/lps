@@ -53,3 +53,7 @@ subprojects/libbreakpoint
 .vscode/
 
 microbenchmark/bin/
+
+backup/
+
+macrobenchmark/CPU2006RootFS/*/

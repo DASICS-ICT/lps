@@ -1,20 +1,11 @@
+#define _GNU_SOURCE
 #include <unistd.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/wait.h>
-#include <sys/time.h>
-#include <time.h>
-// #include <linux/time.h>
-
-static inline long long unsigned time_ns() {
-    struct timespec ts;
-    if (clock_gettime(CLOCK_REALTIME, &ts)) {
-        exit(1);
-    }
-    return ((long long unsigned)ts.tv_sec) * 1000000000LLU +
-        (long long unsigned)ts.tv_nsec;
-}
+#include <stdint.h>
+#include "cycle.h"
 
 static void pingpong(int rd, int wr, int n) {
     char buf[2];
@@ -42,7 +33,7 @@ int main() {
         return 1;
     }
 
-    int n = 100000;
+    int n = 10000;
 
     int child = fork();
     if (child == -1) {
@@ -57,10 +48,19 @@ int main() {
             perror("write");
             exit(1);
         }
-        const long long unsigned t1 = time_ns();
+        uint64_t start = get_cycle_count();
         pingpong(child_to_parent[0], parent_to_child[1], n);
         wait(NULL);
-        const long long unsigned elapsed = time_ns() - t1;
-        printf("%.3fns/ctxswitch\n", elapsed / (float) (n * 2));
+
+        uint64_t all_cycles = get_cycle_count() - start;
+        uint64_t switch_cycles = all_cycles / (2 * n);
+        double all_time_ns = cycle_to_time_ns(all_cycles, FPGA_HZ);
+        double switch_time_ns = all_time_ns / (n * 2.0);
+
+        printf("Iterations: %d\n", n);
+        printf("Total cycles: %llu\n", all_cycles);
+        printf("Total time: %.2f ms\n", all_time_ns / 1000000.0);
+        printf("Cycles per switch: %llu\n", switch_cycles);
+        printf("Time per switch: %.2f μs\n", switch_time_ns / 1000.0);
     }
 }

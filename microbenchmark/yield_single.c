@@ -1,4 +1,5 @@
 // simple_ping.c - 简化版ping程序
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -7,13 +8,7 @@
 #include <unistd.h>
 
 #include "runtime_call.h"
-
-// 使用 RISC-V 汇编实现时间读取
-static inline uint64_t get_timestamp_ns() {
-    uint64_t time;
-    asm volatile("rdtime %0" : "=r"(time));
-    return time;
-}
+#include "cycle.h"
 
 // 假设的用户态运行时系统调用
 extern void runtime_yield();
@@ -21,26 +16,27 @@ extern void runtime_yield();
 #define MAX_ROUNDS 100000
 
 int main() {
-  printf("Simple ping starting...\n");
-  
-  uint64_t start_time = get_timestamp_ns();
-  
-  for (int i = 0; i < MAX_ROUNDS; i++) {
-      // 直接yield，让运行时调度到pong
-      runtime_yield();
-      
-      if (i % 10000 == 0) {
-          printf("Ping: Round %d\n", i);
-      }
-  }
-  
-  uint64_t end_time = get_timestamp_ns();
-  double total_time_ms = (double)(end_time - start_time) / 1000000.0;
-  
-  printf("Ping completed %d rounds in %.2f ms\n", MAX_ROUNDS, total_time_ms);
-  printf("Average time per yield: %.2f ns\n", (double)(end_time - start_time) / MAX_ROUNDS);
-  
-  return 0;
+    printf("Yield test starting...\n");
+    
+    uint64_t start = get_cycle_count();
+    
+    for (int i = 0; i < MAX_ROUNDS; i++) {
+        runtime_yield();
+    }
+    uint64_t end = get_cycle_count();
+
+    uint64_t all_cycles = end - start;
+    uint64_t per_cycles = all_cycles / (MAX_ROUNDS);
+
+    double all_time_ns = cycle_to_time_ns(all_cycles, FPGA_HZ);
+    double per_time_ns = all_time_ns / (MAX_ROUNDS * 1.0);
+
+    printf("Iterations: %d\n", MAX_ROUNDS);
+    printf("Total cycles: %llu\n", all_cycles);
+    printf("Total time: %.2f ms\n", all_time_ns / 1000000.0);
+    printf("Cycles per yield: %llu\n", per_cycles);
+    printf("Time per yield: %.2f μs\n", per_time_ns / 1000.0);
+    return 0;
 }
 
 // simple_pong.c - 对应的pong程序

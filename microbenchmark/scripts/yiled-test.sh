@@ -1,3 +1,2 @@
-#!/bin/bash
-
-../../install/bin/lps-run ../bin/yield_single -dasics
+echo "yield test on lps..."
+lps-run ../bin/yield_single -dasics

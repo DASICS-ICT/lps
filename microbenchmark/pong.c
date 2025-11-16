@@ -1,7 +1,8 @@
+#define _GNU_SOURCE
 #include <unistd.h>
 #include <stdio.h>
 
-#define ITERATIONS 100000
+#define ITERATIONS 10000
 
 // 使用约定的文件描述符
 #define PIPE_READ_FD  3  // 从ping读取

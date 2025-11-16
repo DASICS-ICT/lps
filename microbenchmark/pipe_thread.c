@@ -1,10 +1,11 @@
+#define _GNU_SOURCE
 #include <unistd.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
-#include <sys/time.h>
 #include <time.h>
+#include <stdint.h>
 
 // 线程间通信结构
 typedef struct {
@@ -19,13 +20,11 @@ thread_comm_t parent_to_child;
 thread_comm_t child_to_parent;
 int iterations;
 
-static inline long long unsigned time_ns() {
-  struct timespec ts;
-  if (clock_gettime(CLOCK_REALTIME, &ts)) {
-      exit(1);
-  }
-  return ((long long unsigned)ts.tv_sec) * 1000000000LLU +
-      (long long unsigned)ts.tv_nsec;
+// 获取纳秒级时间戳
+static inline uint64_t get_timestamp_ns() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
 }
 
 // 发送数据到另一个线程
@@ -80,7 +79,7 @@ int main() {
   init_comm(&parent_to_child);
   init_comm(&child_to_parent);
   
-  iterations = 100000; // 增加迭代次数以获得更准确的测量
+  iterations = 10000; // 增加迭代次数以获得更准确的测量
   
   pthread_t child_thread;
   
@@ -91,7 +90,7 @@ int main() {
   }
   
   // 开始测量时间
-  const long long unsigned t1 = time_ns();
+  const long long unsigned t1 = get_timestamp_ns();
   
   // 父线程执行pingpong
   for (int i = 0; i < iterations; i++) {
@@ -105,9 +104,9 @@ int main() {
   // 等待子线程结束
   pthread_join(child_thread, NULL);
   
-  const long long unsigned elapsed = time_ns() - t1;
+  const long long unsigned elapsed = get_timestamp_ns() - t1;
   
-  printf("%.3fns/thread_ctxswitch\n", elapsed / (float) (iterations * 2));
+  printf("%.2fμs/thread_ctxswitch\n", elapsed / (double) (iterations * 2.0 * 1000));
   
   // 清理资源
   cleanup_comm(&parent_to_child);

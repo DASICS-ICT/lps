@@ -22,14 +22,27 @@ def get_spec_int():
   ]
   
 is_dry_run = False
+is_no_clean = False
 
 def dry_run(cmd_list):
     if is_dry_run:
         print(cmd_list)
     else:
         subprocess.run(cmd_list, check=True, shell=True)
+        
+def clean_other(dest):
+    for root, dirs, _ in os.walk(dest):
+        for dir in dirs:
+            if dir in get_spec_int():
+                dir_path = os.path.join(root, dir)
+                dry_run(f'rm -r {dir_path}')
+    
 
 def spec_copy(name, src, dest):
+    # clean other spec
+    if not is_no_clean:
+        clean_other(dest)
+    
     dest_path = os.path.join(dest, name)
     if os.path.exists(dest_path):
         subprocess.run(['rm', '-r', f'{dest_path}'])
@@ -64,13 +77,15 @@ def spec_copy(name, src, dest):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='copy spec test to rootfs')
     parser.add_argument('--dryrun', '-d', default=False, action='store_true', help='dry run')
-    parser.add_argument('name', help='test item name')
+    parser.add_argument('--noclean', '-nc', default=False, action='store_true', help='do not clean other spec test')
     parser.add_argument('src', help='src path')
     parser.add_argument('dest', help='dest path')
+    parser.add_argument('name', help='test item name')
     
     args = parser.parse_args()
     
     is_dry_run = args.dryrun
+    is_no_clean = args.noclean
     
     if not args.name in get_spec_int():
         print(f'unknown benchmark: {args.name}')

@@ -15,14 +15,22 @@ extern void kswitch(struct LFIContext* ctx, struct KContext *old, struct KContex
 extern void lps_load_dasics(struct LFIContext* ctx)
     asm ("lps_load_dasics");
 
+extern void lps_load_float(struct LFIContext* ctx)
+    asm ("lps_load_float");
+
+extern void lps_save_float(struct LFIContext* ctx)
+    asm ("lps_save_float");
+
 static void kswitch_from_sched(struct TuxThread* p) {
     lfi_set_myctx(p->p_ctx);
     // load dasics registers
     lps_load_dasics(p->p_ctx);
+    lps_load_float(p->p_ctx);
     kswitch(p->p_ctx, &sched_ctx, &p->p_ctx->k_ctx);
 }
 
 static void kswitch_to_sched(struct TuxThread* p) {
+    lps_save_float(p->p_ctx);
     kswitch(NULL, &p->p_ctx->k_ctx, &sched_ctx);
 }
 

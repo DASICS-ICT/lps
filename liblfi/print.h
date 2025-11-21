@@ -24,7 +24,7 @@
             fprintf(stderr, SGR_WARN "[liblfi] WARN: " fmt SGR_RESET "\n", ##__VA_ARGS__);  \
     } while (0)
 
-#define NO_DEBUG
+// #define NO_DEBUG
 
 #ifdef NO_DEBUG
 #define DBG(fmt, ...) do { } while (0)

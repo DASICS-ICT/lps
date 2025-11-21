@@ -13,7 +13,7 @@ _Static_assert(offsetof(struct TuxRegs, zero) == OFFSET_ZERO,
     "incorrect REGS offset");
 _Static_assert(offsetof(struct TuxRegs, f) == OFFSET_F,
     "incorrect REGS offset");
-_Static_assert(offsetof(struct TuxRegs, uepc) == OFFSET_UPEC,
+_Static_assert(offsetof(struct TuxRegs, uepc) == OFFSET_UEPC,
     "incorrect REGS offset");
 _Static_assert(offsetof(struct TuxRegs, utval) == OFFSET_UTVAL,
     "incorrect REGS offset");

@@ -66,7 +66,10 @@
     sd t0,  OFFSET_S0(s0)
     // save uepc
     csrr t0, CSR_UEPC
-    sd t0,  OFFSET_UPEC(s0)
+    sd t0,  OFFSET_UEPC(s0)
+    // save ucasue
+    csrr t0, CSR_UCAUSE
+    sd t0,  OFFSET_UCAUSE(s0)
     // save utval
     csrr t0, CSR_UTVAL
     sd t0,  OFFSET_UTVAL(s0)
@@ -85,7 +88,7 @@
     // save uscratch
     csrw CSR_USCRATCH, a0
     // load uepc
-    ld t0, OFFSET_UPEC(a0)
+    ld t0, OFFSET_UEPC(a0)
     csrw CSR_UEPC, t0
     ld ra,  OFFSET_RA(a0)
     ld sp,  OFFSET_SP(a0)
@@ -122,6 +125,12 @@
     ld a0,  OFFSET_A0(a0)
     uret
 .endm
+
+// LightSerial prologue
+.macro LS_PROLOGUE
+    csrr t6, 0x880
+.endm 
+
 
 .p2align 4
 .global lfi_ctx_internal
@@ -250,12 +259,17 @@ lps_ctx_entry:
 lps_init_dasics:
     la t0, dasics_ufault_entry
     csrw CSR_UTVEC, t0
+    // set ustatus.UPIE to set UIE then by uret
+    csrwi CSR_USTATUS, 0x10
+    li t0, 0x111
+    csrw CSR_UIE, t0
     ret
 
 // void lps_load_dasics(struct LFIContext* ctx)
 .p2align 4
 .global lps_load_dasics
 lps_load_dasics:
+    LS_PROLOGUE // csrr t6, 0x880
     // libbound
     ld t0, OFFSET_MEMBOUND0LO(a0)
     ld t1, OFFSET_MEMBOUND0HI(a0)
@@ -327,18 +341,18 @@ lps_load_dasics:
     ld t1, OFFSET_JMPBOUND0HI(a0)
     csrw CSR_DJBOUND0LO, t0
     csrw CSR_DJBOUND0HI, t1
-    ld t2, OFFSET_JMPBOUND1LO(a0)
-    ld t3, OFFSET_JMPBOUND1HI(a0)
-    csrw CSR_DJBOUND1LO, t2
-    csrw CSR_DJBOUND1HI, t3
-    ld t4, OFFSET_JMPBOUND2LO(a0)
-    ld t5, OFFSET_JMPBOUND2HI(a0)
-    csrw CSR_DJBOUND2LO, t4
-    csrw CSR_DJBOUND2HI, t5
-    ld t6, OFFSET_JMPBOUND3LO(a0)
-    ld t0, OFFSET_JMPBOUND3HI(a0)
-    csrw CSR_DJBOUND3LO, t6
-    csrw CSR_DJBOUND3HI, t0
+    ld t0, OFFSET_JMPBOUND1LO(a0)
+    ld t1, OFFSET_JMPBOUND1HI(a0)
+    csrw CSR_DJBOUND1LO, t0
+    csrw CSR_DJBOUND1HI, t1
+    ld t0, OFFSET_JMPBOUND2LO(a0)
+    ld t1, OFFSET_JMPBOUND2HI(a0)
+    csrw CSR_DJBOUND2LO, t0
+    csrw CSR_DJBOUND2HI, t1
+    ld t0, OFFSET_JMPBOUND3LO(a0)
+    ld t1, OFFSET_JMPBOUND3HI(a0)
+    csrw CSR_DJBOUND3LO, t0
+    csrw CSR_DJBOUND3HI, t1
     
     // cfg
     ld t0, OFFSET_MEMCFG(a0)

@@ -9,6 +9,7 @@
 #define CSR_UCAUSE          0x042
 #define CSR_UTVAL           0x043
 #define CSR_UIP             0x044
+#define CSR_UTIMECMP        0x045
 
 /* DASICS csrs */
 #define CSR_DLCFG           0x880

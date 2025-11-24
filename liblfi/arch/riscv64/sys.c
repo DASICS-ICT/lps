@@ -12,6 +12,8 @@
 
 #include "pal/arch/riscv64/regs.h"
 
+#include "schedule.h"
+
 inline static uint64_t get_time(void) {
     uint64_t time;
     asm volatile ("rdtime %0" : "=r"(time));
@@ -29,6 +31,8 @@ arch_syshandle(struct LFIContext* ctx)
         uint64_t next = get_time() + 10000000;
 		DBG("[U_INTR_HANDLER] set utimecmp to %lu", next);
 		csr_write(CSR_UTIMECMP, next);
+        
+        preempt_from(p);
         return;
     }
 

@@ -15,3 +15,5 @@ void wake_all(struct queue* q);
 void scheduler_add_task(struct TuxThread* p);
 
 void scheduler_begin();
+
+void preempt_from(struct TuxThread* p);

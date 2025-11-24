@@ -105,3 +105,14 @@ EXPORT void scheduler_begin() {
     }
     fprintf(stderr, "[scheduler]: end scheduling\n");
 }
+
+static inline bool grunq_is_empty() {
+    return queue_is_empty(&g_runq);
+}
+
+void preempt_from(struct TuxThread* p) {
+    if (grunq_is_empty()) {
+        return;
+    }
+    yield(p);
+}

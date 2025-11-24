@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-const char *timer = "A";
+const char *timer = "B";
 
 int main() {
     int count = 0;

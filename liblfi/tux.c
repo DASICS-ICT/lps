@@ -20,6 +20,9 @@
 extern void lps_init_dasics()
     asm ("lps_init_dasics");
 
+extern void lps_init_utimer()
+    asm ("lps_init_utimer");
+
 EXPORT void
 lfi_tux_syscall(struct LFIContext* ctx)
 {
@@ -58,6 +61,9 @@ lfi_tux_new(struct LFIPlatform* plat, struct TuxOptions opts)
 
     lfi_sys_handler(plat, &lfi_tux_syscall);
     lps_init_dasics();
+    if (tux->opts.utimer) {
+        lps_init_utimer();
+    }
     return tux;
 err3:
     free(tux->fstdout);

@@ -259,6 +259,12 @@ lps_ctx_entry:
 lps_init_dasics:
     la t0, dasics_ufault_entry
     csrw CSR_UTVEC, t0
+    ret
+    
+// void lps_init_utimer()
+.p2align 4
+.global lps_init_utimer
+lps_init_utimer:
     // set ustatus.UPIE to set UIE then by uret
     csrwi CSR_USTATUS, 0x10
     li t0, 0x111

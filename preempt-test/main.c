@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <assert.h>
+#include <argp.h>
 
 #include "lfi_tux.h"
 #include "lfi.h"
@@ -29,18 +29,61 @@ kb(size_t x)
     return x * 1024;
 }
 
+#define INPUTMAX 256
 
-// usage: preempt-test [ping] [pong]
+static char doc[] = "preempt test";
+
+static char args_doc[] = "ELF0 ELF1 ...";
+
+struct Args {
+    char* inputs[INPUTMAX];
+    size_t ninputs;
+    bool utimer;
+};
+
+static struct argp_option options[] = {
+    { "help",           'h',               0,      0, "show this message", -1 },
+    { "utimer",         'u',               0,      0, "enable utimer", -1 },
+    { 0 },
+};
+
+static error_t
+parse_opt(int key, char* arg, struct argp_state* state) {
+    struct Args* args = state->input;
+
+    switch(key) {
+        case 'h':
+            argp_state_help(state, state->out_stream, ARGP_HELP_STD_HELP);
+            break;
+        case 'u':
+            args->utimer = true;
+            break;
+        case ARGP_KEY_ARG:
+            if (args->ninputs < INPUTMAX) {
+                args->inputs[args->ninputs++] = arg;
+            }
+            break;
+        default:
+            return ARGP_ERR_UNKNOWN;
+    }
+
+    return 0;
+}
+
+static struct argp argp = { .options = options, .parser = parse_opt, .args_doc = args_doc, .doc = doc };
+
+struct Args args;
+
 int
 main(int argc, char** argv)
 {
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s [ping] [pong]\n", argv[0]);
+    
+    argp_parse(&argp, argc, argv, ARGP_NO_HELP | ARGP_IN_ORDER, 0, &args);
+
+    if (args.ninputs <= 0) {
+        fprintf(stderr, "no input file provided\n");
         return 1;
     }
-
-    const char* ping_path = argv[1];
-    const char* pong_path = argv[2];
 
     struct LFIPlatform* plat = lfi_new_plat((struct LFIPlatOptions) {
         .pagesize = kb(4),
@@ -52,22 +95,21 @@ main(int argc, char** argv)
         .pagesize = kb(4),
         .verbose = true,
         .stacksize = mb(2),
+        .utimer = args.utimer,
     });
 
-    buf_t ping_elf = bufreadfile(tux, ping_path);
-    buf_t pong_elf = bufreadfile(tux, pong_path);
+    for (int i = 0; i < args.ninputs; ++i) {
+        buf_t elf = bufreadfile(tux, args.inputs[i]);
 
-    if (!ping_elf.data || !pong_elf.data) {
-        fprintf(stderr, "error opening: %s or %s\n", ping_path, pong_path);
-        return 1;
+        if (!elf.data) {
+            fprintf(stderr, "error openning: %s\n", args.inputs[i]);
+            return 1;
+        }
+
+        struct TuxThread* p = lfi_tux_proc_new(tux, elf.data, elf.size, 0, NULL);
+
+        scheduler_add_task(p);
     }
-
-    struct TuxThread* ping = lfi_tux_proc_new(tux, ping_elf.data, ping_elf.size, 0, NULL);
-
-    struct TuxThread* pong = lfi_tux_proc_new(tux, pong_elf.data, pong_elf.size, 0, NULL);
-
-    scheduler_add_task(ping);
-    scheduler_add_task(pong);
 
     scheduler_begin();
     

@@ -35,6 +35,7 @@ struct TuxOptions {
     bool poc;
     struct TuxFS fs;
     char* gdbfile;
+    bool utimer;
 };
 
 struct LFIPlatform;

@@ -1,7 +1,7 @@
 executable(
   'preempt-test',
   sources: ['main.c'],
-  dependencies: [liblfi_dep],
+  dependencies: [liblfi_dep, argp],
   link_args: ['-T', meson.current_source_dir() / 'ld.ld'],
   install: true,
 )

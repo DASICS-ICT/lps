@@ -102,3 +102,5 @@ subdir('pipe-test')
 subdir('lps-run')
 subdir('utimer-test')
 subdir('preempt-test')
+
+subdir('core')

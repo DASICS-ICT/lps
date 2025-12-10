@@ -79,6 +79,10 @@ go = find_program('go')
 xxd = find_program('xxd', required: false)
 cp = find_program('cp')
 
+
+subdir('core')
+subdir('liblps')
+
 subdir('lfi-verify')
 
 if not get_option('liblfi-only')
@@ -102,5 +106,3 @@ subdir('pipe-test')
 subdir('lps-run')
 subdir('utimer-test')
 subdir('preempt-test')
-
-subdir('core')

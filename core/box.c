@@ -72,3 +72,21 @@ lps_box_mapat(struct LPSBox *box, uintptr_t addr, size_t size, int prot, int fla
 
     return (uintptr_t) mem;
 }
+
+int
+lps_box_mprotect(struct LPSBox *box, uintptr_t addr, size_t size, int prot)
+{
+    // TODO: check addr valid
+
+    return mprotect(addr, size, prot);
+}
+
+
+struct LPSBoxInfo
+lps_box_info(struct LPSBox *box)
+{
+    return (struct LPSBoxInfo) {
+        .base = box->base,
+        .size = box->size,
+    };
+}

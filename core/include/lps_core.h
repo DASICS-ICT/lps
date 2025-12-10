@@ -22,6 +22,11 @@ struct LPSOptions {
     bool verbose;
 };
 
+struct LPSBoxInfo {
+    uintptr_t base;
+    size_t size;
+};
+
 // Creates a new LPS engine and reserve enough virtual address space for 'n'
 // sandboxes.
 struct LPSEngine *

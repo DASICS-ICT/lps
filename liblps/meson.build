@@ -4,6 +4,7 @@ srcs = files(
     'fd.c',
     'elfload.c',
     'buf.c',
+    'thread.c',
 )
 
 liblps_linux = static_library(

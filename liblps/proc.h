@@ -52,7 +52,10 @@ struct LPSProc {
     uintptr_t brkbase;
     size_t brksize;
 
+    uintptr_t entry;
     struct ELFLoadInfo elfinfo;
+
+    _Atomic(int) total_thread_count;
 
     struct FDTable fdtable;
 

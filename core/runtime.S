@@ -181,7 +181,7 @@ lps_init_utimer:
     csrw CSR_UIE, t0
     ret
 
-// void lps_load_dasics(struct LFIContext* ctx)
+// void lps_load_dasics(struct LPSContext* ctx)
 .p2align 4
 .global lps_load_dasics
 lps_load_dasics:

@@ -156,6 +156,14 @@ void
 lps_jmpbound_clear(struct LPSContext *ctx, int idx);
 
 
+// ctx switch
+void
+lps_kswitch_to(struct LPSContext *ctx);
+
+void
+lps_kswitch_from(struct LPSContext *ctx);
+
+
 #ifdef __cplusplus
 }
 #endif

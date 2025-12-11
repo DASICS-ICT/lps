@@ -53,11 +53,12 @@ cbunmap(uint64_t start, size_t len, struct MMInfo info, void *udata)
 }
 
 
-uintptr_t
+EXPORT uintptr_t
 lps_box_mapat(struct LPSBox *box, uintptr_t addr, size_t size, int prot, int flags,
     int fd, off_t off) 
 {
-    // TODO: check valid && dasics support
+    // TODO: dasics support
+    assert(addr >= box->base && addr + size <= box->base + box->size);
 
     uintptr_t m_addr = mm_mapat_cb(&box->mm, addr, size, prot, flags,
         fd, off, cbunmap, NULL);
@@ -65,24 +66,53 @@ lps_box_mapat(struct LPSBox *box, uintptr_t addr, size_t size, int prot, int fla
         return (uintptr_t) -1;
     }
     
-    void *mem = mmap((void *) addr, size, prot, flags | MAP_FIXED, fd, off);
+    void *mem = mmap((void *) m_addr, size, prot, flags | MAP_FIXED, fd, off);
     if (mem == (void *) -1) {
+        mm_unmap(&box->mm, m_addr, size);
         return (uintptr_t) -1;
     }
 
     return (uintptr_t) mem;
 }
 
-int
+EXPORT uintptr_t
+lps_box_mapany(struct LPSBox *box, size_t size, int prot, int flags, int fd,
+    off_t off)
+{
+    uintptr_t m_addr = mm_mapany(&box->mm, size, prot, flags, fd, off);
+    if (m_addr == (uintptr_t) -1) {
+        return (uintptr_t) -1;
+    }
+
+    void *mem = mmap((void *) m_addr, size, prot, flags | MAP_FIXED, fd, off);
+    if (mem == (void *) -1) {
+        mm_unmap(&box->mm, m_addr, size);
+        return (uintptr_t) -1;
+    }
+
+    return (uintptr_t) mem;
+}
+
+
+EXPORT int
+lps_box_munmap(struct LPSBox *box, uintptr_t addr, size_t size)
+{
+    if (addr >= box->base && addr + size <= box->base + box->size) {
+        return mm_unmap_cb(&box->mm, addr, size, cbunmap, NULL);
+    }
+    return -1;
+}
+
+EXPORT int
 lps_box_mprotect(struct LPSBox *box, uintptr_t addr, size_t size, int prot)
 {
-    // TODO: check addr valid
+    assert(addr >= box->base && addr + size <= box->base + box->size);
 
     return mprotect(addr, size, prot);
 }
 
 
-struct LPSBoxInfo
+EXPORT struct LPSBoxInfo
 lps_box_info(struct LPSBox *box)
 {
     return (struct LPSBoxInfo) {

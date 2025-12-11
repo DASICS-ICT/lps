@@ -7,9 +7,16 @@
 #include <stdlib.h>
 
 _Thread_local struct LPSContext *lps_myctx;
+_Thread_local struct KRegs lps_kctx;
 
-extern void lps_ctx_entry(struct LPSContext* ctx)
-    asm ("lps_ctx_entry");
+extern void lps_ctx_entry(struct LPSContext *ctx)
+    __asm__ ("lps_ctx_entry");
+
+extern void kswitch(struct LPSContext *ctx, struct KRegs *old, struct KRegs *new)
+    __asm__ ("kswitch");
+
+extern void lps_load_dasics(struct LPSContext* ctx)
+    __asm__ ("lps_load_dasics");
 
 static void kregs_init(struct KRegs *kregs, uintptr_t entry, uintptr_t sp, uintptr_t sp_base) 
 {
@@ -32,7 +39,7 @@ lps_ctx_new(struct LPSBox *box, void *userdata)
 
     void *kstack = malloc(2 * 1024 * 1024);
     if (!kstack) {
-
+        return NULL;
     }
     void *kstackp = kstack + 2 * 1024 * 1024;
 
@@ -48,11 +55,33 @@ lps_ctx_regs(struct LPSContext *ctx)
 }
 
 EXPORT struct LPSContext *
-lps_cur_ctx(void) {
+lps_cur_ctx(void) 
+{
     return lps_myctx;
 }
 
 EXPORT void
-lps_set_ctx(struct LPSContext *ctx) {
+lps_set_ctx(struct LPSContext *ctx) 
+{
     lps_myctx = ctx;
+}
+
+EXPORT void
+lps_ctx_free(struct LPSContext *ctx) 
+{
+    free(ctx);
+}
+
+EXPORT void
+lps_kswitch_to(struct LPSContext *ctx)
+{
+    lps_myctx = ctx;
+    lps_load_dasics(ctx);
+    kswitch(ctx, &lps_kctx, &ctx->kregs);
+}
+
+EXPORT void
+lps_kswitch_from(struct LPSContext *ctx)
+{
+    kswitch(NULL, &ctx->kregs, &lps_kctx);
 }

@@ -5,7 +5,10 @@ srcs = files(
     'elfload.c',
     'buf.c',
     'thread.c',
+    'sys.c',
 )
+
+subdir('sys')
 
 liblps_linux = static_library(
     'lps-linux',

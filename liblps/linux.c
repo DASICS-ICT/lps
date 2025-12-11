@@ -1,5 +1,6 @@
 #include "lps_linux.h"
 #include "linux.h"
+#include "sys.h"
 
 #include <stdlib.h>
 
@@ -11,7 +12,7 @@ lps_linux_new(struct LPSEngine *lps_engine, struct LPSLinuxOpts opts)
         return NULL;
     }
 
-    // lps_sys_handler()
+    lps_sys_handler(lps_engine, arch_syshandle);
 
     *engine = (struct LPSLinuxEngine) {
         .engine = lps_engine,

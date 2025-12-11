@@ -120,3 +120,9 @@ lps_box_info(struct LPSBox *box)
         .size = box->size,
     };
 }
+
+EXPORT bool
+lps_box_ptrvalid(struct LPSBox *box, uintptr_t addr)
+{
+    return addr >= box->base && addr < box->base + box->size;
+}

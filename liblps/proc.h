@@ -70,7 +70,16 @@ struct LPSThread {
     uintptr_t stack;
     size_t stack_size;
 
+    // Child tid pointer location.
+    uintptr_t ctidp;
+
     int tid;
+
+    enum LPSThreadState{
+        THREAD_RUNNABLE,
+        THREAD_BOLCKED,
+        THREAD_EXITED,
+    } state;
 
     struct LPSProc *proc;
 };

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern void init_dasics() __asm__ ("init_dasics");
+extern void lps_init_dasics() __asm__ ("lps_init_dasics");
 
 EXPORT struct LPSEngine *
 lps_new(struct LPSOptions opts, size_t nsandboxes) {
@@ -37,7 +37,7 @@ lps_new(struct LPSOptions opts, size_t nsandboxes) {
     };
 
     // TODO: make it init only once
-    init_dasics();
+    lps_init_dasics();
 
     LOG(engine, "initialized LPS engine: %ld GiB",
         reserve / 1024 / 1024 / 1024);

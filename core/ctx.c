@@ -34,8 +34,10 @@ lps_ctx_new(struct LPSBox *box, void *userdata)
         return NULL;
     }
 
-    ctx->userdata = userdata;
-    ctx->box = box;
+    *ctx = (struct LPSContext) {
+        .userdata = userdata,
+        .box = box,
+    };
 
     void *kstack = malloc(2 * 1024 * 1024);
     if (!kstack) {
@@ -44,6 +46,10 @@ lps_ctx_new(struct LPSBox *box, void *userdata)
     void *kstackp = kstack + 2 * 1024 * 1024;
 
     kregs_init(&ctx->kregs, (uintptr_t)lps_ctx_entry, (uintptr_t)kstackp, (uintptr_t)kstack);
+
+    // TODO: tmp dasics whole range
+    lps_membound_set(ctx, 0, LIBCFG_R | LIBCFG_W, box->base, box->base + box->size);
+    lps_jmpbound_set(ctx, 0, box->base, box->base + box->size);
 
     return ctx;
 }

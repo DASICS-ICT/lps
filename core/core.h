@@ -21,6 +21,8 @@ struct LPSBox {
     uintptr_t base;
     size_t size; 
 
+    void *userdata;
+
     struct LPSEngine *engine;
 };
 

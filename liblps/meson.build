@@ -1,11 +1,12 @@
 srcs = files(
+    'buf.c',
+    'elfload.c',
+    'fd.c',
+    'host.c',
     'linux.c',
     'proc.c',
-    'fd.c',
-    'elfload.c',
-    'buf.c',
-    'thread.c',
     'sys.c',
+    'thread.c',
 )
 
 subdir('sys')
@@ -18,6 +19,6 @@ liblps_linux = static_library(
     include_directories: include_directories('include'),
 )
 
-lps_linux = declare_dependency(link_with: liblps_linux, include_directories: include_directories('include'))
+lps_linux = declare_dependency(link_with: liblps_linux, include_directories: include_directories('include', '../core/include'))
 
 install_headers('include/lps_linux.h')

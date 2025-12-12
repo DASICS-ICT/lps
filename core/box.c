@@ -108,7 +108,7 @@ lps_box_mprotect(struct LPSBox *box, uintptr_t addr, size_t size, int prot)
 {
     assert(addr >= box->base && addr + size <= box->base + box->size);
 
-    return mprotect(addr, size, prot);
+    return mprotect((void *) addr, size, prot);
 }
 
 
@@ -125,4 +125,16 @@ EXPORT bool
 lps_box_ptrvalid(struct LPSBox *box, uintptr_t addr)
 {
     return addr >= box->base && addr < box->base + box->size;
+}
+
+EXPORT void
+lps_box_setdata(struct LPSBox *box, void *userdata)
+{
+    box->userdata = userdata;
+}
+
+EXPORT void *
+lps_ctx_data(struct LPSContext *ctx)
+{
+    return ctx->userdata;
 }

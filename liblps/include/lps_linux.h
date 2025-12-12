@@ -38,6 +38,9 @@ lps_thread_new(struct LPSProc *proc, int argc, const char **argv,
 void
 lps_thread_run(struct LPSThread *t);
 
+void
+lps_thread_exit(struct LPSThread *t);
+
 #ifdef __cplusplus
 }
 #endif

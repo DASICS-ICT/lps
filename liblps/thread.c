@@ -111,16 +111,15 @@ stack_init(struct LPSThread *t, int argc, const char **argv,
     // for also storing aligned values.
     uintptr_t strs_start = truncp(t->stack + t->stack_size - strs_len, 16);
     size_t count = 0;
-    struct LFIBox *box = t->proc->box;
     // Copy the argv and envp strings into the sandbox.
     for (size_t i = 0; i < nargv; i++) {
         size_t len = strnlen(argv[i], ARGV_MAXLEN) + 1;
-        box_argv[i] = memcpy((void *) (strs_start + count), argv[i], len);
+        box_argv[i] = (uintptr_t) memcpy((void *) (strs_start + count), argv[i], len);
         count += len;
     }
     for (size_t i = 0; i < nenvp; i++) {
         size_t len = strnlen(envp[i], ARGV_MAXLEN) + 1;
-        box_envp[i] = memcpy((void *) (strs_start + count), envp[i], len);
+        box_envp[i] = (uintptr_t) memcpy((void *) (strs_start + count), envp[i], len);
         count += len;
     }
 
@@ -165,12 +164,12 @@ stack_init(struct LPSThread *t, int argc, const char **argv,
     uintptr_t stack_start = rand_start - sizeof(box_argc) - sizeof(box_argv) -
         sizeof(box_envp) - sizeof(auxv);
     // Copy each item onto the stack.
-    uintptr_t next = memcpy((void *) stack_start, &box_argc,
+    uintptr_t next = (uintptr_t) memcpy((void *) stack_start, &box_argc,
                       sizeof(box_argc)) +
         sizeof(box_argc);
-    next = memcpy((void *) next, box_argv, sizeof(box_argv)) +
+    next = (uintptr_t) memcpy((void *) next, box_argv, sizeof(box_argv)) +
         sizeof(box_argv);
-    next = memcpy((void *) next, box_envp, sizeof(box_envp)) +
+    next = (uintptr_t) memcpy((void *) next, box_envp, sizeof(box_envp)) +
         sizeof(box_envp);
     memcpy((void *) next, &auxv, sizeof(auxv));
 
@@ -182,6 +181,13 @@ sp_init(struct LPSThread *t, uintptr_t sp)
 {
     struct LPSRegs *regs = lps_ctx_regs(t->ctx);
     regs->sp = sp;
+}
+
+static void
+uepc_init(struct LPSThread *t, uintptr_t uepc) {
+    struct LPSRegs *regs = lps_ctx_regs(t->ctx);
+    regs->uepc = uepc;
+    LOG(t->proc->engine, "uepc_init: 0x%lx", uepc);
 }
 
 struct LPSThread * 
@@ -199,7 +205,7 @@ lps_thread_new(struct LPSProc *proc, int argc, const char **argv,
     }
     t->tid = next_tid(proc);
 
-    size_t stacksize = 2 * 1024 * 1024; // TODO: configurable
+    size_t stacksize = 2ULL * 1024 * 1024; // TODO: configurable
     uintptr_t end = proc->boxinfo.base + proc->boxinfo.size;
     t->stack = lps_box_mapat(proc->box, end - stacksize, stacksize, 
         PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -207,9 +213,11 @@ lps_thread_new(struct LPSProc *proc, int argc, const char **argv,
         goto err3;
     }
     t->stack_size = stacksize;
+    LOG(proc->engine, "map stack at [0x%lx, 0x%lx]", t->stack, end);
     
     uintptr_t sp = stack_init(t, argc, argv, envp);
     sp_init(t, sp);
+    uepc_init(t, proc->entry);
 
     return t;
 err3:
@@ -223,5 +231,13 @@ err1:
 EXPORT void
 lps_thread_run(struct LPSThread *t)
 {
+    LOG(t->proc->engine, "Thread %lx entered", t);
     lps_kswitch_to(t->ctx);
+}
+
+EXPORT void
+lps_thread_exit(struct LPSThread *t)
+{
+    LOG(t->proc->engine, "Thread %lx exited", t);
+    lps_kswitch_from(t->ctx);
 }

@@ -13,6 +13,15 @@
 // We do not allow executable segments above 1GiB.
 #define CODE_MAX (1UL * 1024 * 1024 * 1024)
 
+// Convert ELF protection flags to LFI mmap protection flags.
+static int
+pflags(int prot)
+{
+    return ((prot & PF_R) ? PROT_READ : 0) |
+        ((prot & PF_W) ? PROT_WRITE : 0) |
+        ((prot & PF_X) ? PROT_EXEC : 0);
+}
+
 // Sanity-check the ELF header.
 static bool
 elf_check(Elf64_Ehdr *ehdr)
@@ -174,10 +183,10 @@ elf_load_one(struct LPSProc *proc, struct Buf elf, uint64_t base,
         laststart = start;
 
         LOG(proc->engine, "elf_load [0x%lx, 0x%lx] (P: %d)", base + start,
-            base + end, p->p_flags);
+            base + end, pflags(p->p_flags));
     
         if (!buf_read_elfseg(proc, base + start, offset, base + end,
-                    p->p_offset, p->p_filesz, p->p_memsz, p->p_flags,
+                    p->p_offset, p->p_filesz, p->p_memsz, pflags(p->p_flags),
                     elf, pagesize, p->p_align)) {
             ERROR("elf_load error: reading elf segment failed");
             goto err1;

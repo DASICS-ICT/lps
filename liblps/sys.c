@@ -31,6 +31,26 @@ void arch_syshandle(struct LPSContext *ctx)
     assert(t);
     struct LPSRegs *regs = lps_ctx_regs(ctx);
 
+    assert(regs->ucasue == CAUSE_DASICS_U_CHECK_FAULT);
+    
+    if (regs->dfreason != DFR_EF) {
+        switch (regs->dfreason) {
+        case DFR_LF:
+            LOG(t->proc->engine, "load fault: uepc:%lx, addr:%lx", regs->uepc, regs->utval);
+            break;
+        case DFR_SF:
+            LOG(t->proc->engine, "store fault: uepc:%lx, addr:%lx", regs->uepc, regs->utval);
+            break;
+        default:
+            LOG(t->proc->engine, "DASICS fault(%lx): uepc:%lx, addr:%lx", regs->dfreason, regs->uepc, regs->utval);
+        }
+        unsigned long base = t->proc->boxinfo.base;
+        assert(0);
+    }
+
+    // uepc += 4 TODO: 2字节指令对齐支持
+    regs->uepc += 4;
+
     regs->a0 = syshandle(t, regs->a7, regs->a0, regs->a1, regs->a2, regs->a3,
         regs->a4, regs->a5);
 }

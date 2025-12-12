@@ -79,7 +79,7 @@ main(int argc, char** argv)
 
     const char *envp = NULL;
 
-    struct LPSThread *t = lps_thread_new(proc, 0, NULL, &envp);
+    struct LPSThread *t = lps_thread_new(proc, argc - 1, (const char **)(argv + 1) , &envp);
 
     lps_thread_run(t);
     

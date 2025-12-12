@@ -115,11 +115,13 @@ stack_init(struct LPSThread *t, int argc, const char **argv,
     for (size_t i = 0; i < nargv; i++) {
         size_t len = strnlen(argv[i], ARGV_MAXLEN) + 1;
         box_argv[i] = (uintptr_t) memcpy((void *) (strs_start + count), argv[i], len);
+        // LOG(t->proc->engine, "stack_init: copy (%s) on 0x%lx", argv[i], (strs_start + count));
         count += len;
     }
     for (size_t i = 0; i < nenvp; i++) {
         size_t len = strnlen(envp[i], ARGV_MAXLEN) + 1;
         box_envp[i] = (uintptr_t) memcpy((void *) (strs_start + count), envp[i], len);
+        // LOG(t->proc->engine, "stack_init: copy (%s) on 0x%lx", envp[i], (strs_start + count));
         count += len;
     }
 
@@ -133,6 +135,7 @@ stack_init(struct LPSThread *t, int argc, const char **argv,
     uintptr_t rand_start = strs_start - sizeof(random);
     // Copy into the sandbox.
     memcpy((void *) rand_start, &random[0], sizeof(random));
+    // LOG(t->proc->engine, "stack_init: copy random(%luB) on 0x%lx", sizeof(random), rand_start);
 
     // Create the auxiliary vector.
     struct AuxvList auxv = {
@@ -164,13 +167,17 @@ stack_init(struct LPSThread *t, int argc, const char **argv,
     uintptr_t stack_start = rand_start - sizeof(box_argc) - sizeof(box_argv) -
         sizeof(box_envp) - sizeof(auxv);
     // Copy each item onto the stack.
+    // LOG(t->proc->engine, "stack_init: copy argc(%lu) on 0x%lx", box_argc, stack_start);
     uintptr_t next = (uintptr_t) memcpy((void *) stack_start, &box_argc,
                       sizeof(box_argc)) +
         sizeof(box_argc);
+    // LOG(t->proc->engine, "stack_init: copy argv(%luB) on 0x%lx", sizeof(box_argv), next);
     next = (uintptr_t) memcpy((void *) next, box_argv, sizeof(box_argv)) +
         sizeof(box_argv);
+    // LOG(t->proc->engine, "stack_init: copy envp(%luB) on 0x%lx", sizeof(box_envp), next);
     next = (uintptr_t) memcpy((void *) next, box_envp, sizeof(box_envp)) +
         sizeof(box_envp);
+    // LOG(t->proc->engine, "stack_init: copy auxv(%luB) on 0x%lx", sizeof(auxv), next);
     memcpy((void *) next, &auxv, sizeof(auxv));
 
     return stack_start;
@@ -181,6 +188,7 @@ sp_init(struct LPSThread *t, uintptr_t sp)
 {
     struct LPSRegs *regs = lps_ctx_regs(t->ctx);
     regs->sp = sp;
+    LOG(t->proc->engine, "sp_init: 0x%lx", sp);
 }
 
 static void

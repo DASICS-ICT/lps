@@ -316,3 +316,49 @@
 
 void
 arch_syshandle(struct LPSContext *ctx);
+
+
+/* ustatus CSR bits */
+#define USTATUS_UIE         0x00000001
+#define USTATUS_UPIE        0x00000010
+
+#define RISCV_EXCP_INT_FLAG 0x80000000
+
+#define IRQ_U_SOFT          0
+#define IRQ_U_TIME          4
+#define IRQ_U_EXT           8
+
+#define CAUSE_IRQ_U_EXT  ((uint64_t)((1ULL<<63) | 8))
+#define CAUSE_IRQ_U_TIME ((uint64_t)((1ULL<<63) | 4))
+
+#define CAUSE_DASICS_U_CHECK_FAULT 0x18
+#define CAUSE_DASICS_S_CHECK_FAULT 0x19
+
+#define DFR_EF  1 // dasics ecall fault
+#define DFR_LF  2 // dasics load fault
+#define DFR_SF  3 // dasics store fault
+#define DFR_JF  4 // dasics jump
+
+// Define __ASM_STR if not already defined
+#ifndef __ASM_STR
+#define __ASM_STR(x) #x
+#endif
+
+#define csr_read(csr)                                   \
+    ({                                                  \
+        register unsigned long __v;                     \
+        __asm__ __volatile__("csrr %0, " __ASM_STR(csr) \
+                     : "=r"(__v)                        \
+                     :                                  \
+                     : "memory");                       \
+        __v;                                            \
+    })
+
+#define csr_write(csr, val)                                \
+    ({                                                     \
+        unsigned long __v = (unsigned long)(val);          \
+        __asm__ __volatile__("csrw " __ASM_STR(csr) ", %0" \
+                     :                                     \
+                     : "rK"(__v)                           \
+                     : "memory");                          \
+    })

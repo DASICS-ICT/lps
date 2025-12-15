@@ -100,20 +100,22 @@ pathcopy(struct LPSThread *t, uintptr_t pathp)
 // Checks pathp, copies it into host memory, and resolves it to a host path.
 // Places the resolved host path in host_path, and returns the copied sandbox
 // path. The user must free the sandbox path.
-// static inline char *
-// pathcopyresolve(struct LPSThread *t, uintptr_t pathp, char *host_path,
-//     size_t host_size)
-// {
-//     char *path = pathcopy(t, pathp);
-//     if (!path)
-//         return NULL;
-//     // LOCK_WITH_DEFER(&t->proc->cwd.lk, lk_cwd);
-//     if (!path_resolve(t->proc, path, host_path, host_size)) {
-//         free(path);
-//         return NULL;
-//     }
-//     return path;
-// }
+static inline char *
+pathcopyresolve(struct LPSThread *t, uintptr_t pathp, char *host_path,
+    size_t host_size)
+{
+    char *path = pathcopy(t, pathp);
+    if (!path)
+        return NULL;
+    // LOCK_WITH_DEFER(&t->proc->cwd.lk, lk_cwd);
+    // if (!path_resolve(t->proc, path, host_path, host_size)) {
+    //     free(path);
+    //     return NULL;
+    // }
+    // TODO: path join (now tmp hostpath == path)
+    strncpy(host_path, path, FILENAME_MAX);
+    return path;
+}
 
 uintptr_t
 sys_ignore(struct LPSThread *t, const char *name);
@@ -268,11 +270,6 @@ uintptr_t
 sys_passthrough(struct LPSThread *t, uintptr_t sysno, uintptr_t a0,
     uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4, uintptr_t a5);
 
-uintptr_t
-sys_lfi_pause(struct LPSThread *t);
-
-long
-sys_lfi_register(struct LPSThread *t, uintptr_t box_funcs, size_t n);
 
 int
 sys_prctl(struct LPSThread *t, int op, uint64_t arg2, uint64_t arg3,

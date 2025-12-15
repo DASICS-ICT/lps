@@ -9,3 +9,9 @@ sys_set_tid_address(struct LPSThread *t, uintptr_t ctid)
     t->ctidp = ctid;
     return t->tid;
 }
+
+int
+sys_gettid(struct LPSThread *t)
+{
+    return t->tid;
+}

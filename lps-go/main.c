@@ -63,6 +63,7 @@ main(int argc, char** argv)
 
     struct LPSLinuxEngine *x_engine = lps_linux_new(engine, (struct LPSLinuxOpts) {
         .verbose = true,
+        .passthrough = false,
     });
     assert(x_engine != NULL);
 

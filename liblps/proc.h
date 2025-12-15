@@ -95,3 +95,6 @@ proc_mapat(struct LPSProc *p, uintptr_t start, size_t size, int prot,
 
 int
 proc_unmap(struct LPSProc *p, uintptr_t start, size_t size);
+
+int
+proc_chdir(struct LPSProc *p, const char *path);

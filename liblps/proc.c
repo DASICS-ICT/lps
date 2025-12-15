@@ -1,10 +1,12 @@
 #include "proc.h"
 #include "fd.h"
 #include "elfload.h"
+#include "cwalk.h"
 
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <string.h>
 
 struct LPSProc * 
 lps_proc_new(struct LPSLinuxEngine *engine)
@@ -135,4 +137,28 @@ proc_unmap(struct LPSProc *p, uintptr_t start, size_t size)
 {
     // TODO: lock
     return lps_box_munmap(p->box, start, size);
+}
+
+int
+proc_chdir(struct LPSProc *p, const char *path)
+{
+    // TODO: path check
+    if (cwk_path_is_absolute(path)) {
+        // lock
+        // check
+        size_t len = strnlen(path, sizeof(p->cwd.path) - 1);
+        memcpy(&p->cwd.path[0], path, len);
+        p->cwd.path[len] = 0;
+    } else {
+        if (p->cwd.path[0] == 0)
+            return -LINUX_ENOENT;
+        
+        char joined[FILENAME_MAX];
+        // lock
+        cwk_path_join(p->cwd.path, path, joined, sizeof(joined));
+        // check
+        strncpy(p->cwd.path, joined, sizeof(joined));
+        p->cwd.path[sizeof(p->cwd.path) - 1] = 0;
+    }
+    return 0;
 }

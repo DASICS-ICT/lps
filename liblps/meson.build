@@ -7,6 +7,7 @@ srcs = files(
     'proc.c',
     'sys.c',
     'thread.c',
+    'cwalk.c',
 )
 
 subdir('sys')

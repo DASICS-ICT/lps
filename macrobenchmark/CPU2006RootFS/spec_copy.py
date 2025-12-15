@@ -86,10 +86,6 @@ if __name__ == '__main__':
     
     is_dry_run = args.dryrun
     is_no_clean = args.noclean
-    
-    if not args.name in get_spec_int():
-        print(f'unknown benchmark: {args.name}')
-        exit()
         
     if not os.path.exists(args.src):
         print(f'invalid src path: {args.src}')
@@ -98,9 +94,12 @@ if __name__ == '__main__':
     if not os.path.exists(args.dest):
         print(f'invalid dest path: {args.dest}')
         exit()
-    
-    spec_copy(args.name, args.src, args.dest)
-    
-    
-    
-    
+        
+    if args.name == 'all':
+        for name in get_spec_int():
+            spec_copy(name, args.src, args.dest)
+    elif not args.name in get_spec_int():
+        print(f'unknown benchmark: {args.name}')
+        exit()
+    else:
+        spec_copy(args.name, args.src, args.dest)

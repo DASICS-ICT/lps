@@ -7,6 +7,8 @@ extern "C" {
 
 struct LPSLinuxOpts {
     bool verbose;
+
+    bool passthrough;
 };
 
 struct LPSLinuxEngine;

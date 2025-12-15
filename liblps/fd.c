@@ -111,7 +111,7 @@ fdinit(struct LPSLinuxEngine *engine, struct FDTable *t)
     t->fds[1] = dup(STDOUT_FILENO);
     t->fds[2] = dup(STDERR_FILENO);
 
-    // t->passthrough = engine->opts.sys_passthrough;
+    t->passthrough = engine->opts.passthrough;
 }
 
 void

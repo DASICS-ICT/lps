@@ -1,5 +1,6 @@
 #include "lock.h"
 #include "fd.h"
+#include "host.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +22,20 @@ fdassign(struct FDTable *t, int fd, int host_fd, char *dir)
 }
 
 int
+fdfassign(struct FDTable *t, struct FDFile *f)
+{
+    LOCK_WITH_DEFER(&t->lk, t_lk);
+    int i;
+    for (i = 0; i < LINUX_NOFILE; i++) {
+        if (t->files[i] == NULL) {
+            t->files[i] = f;
+            return i;
+        }
+    }
+    return -1;
+}
+
+int
 fdget(struct FDTable *t, int fd)
 {
     if (t->passthrough)
@@ -29,6 +44,24 @@ fdget(struct FDTable *t, int fd)
         return false;
     LOCK_WITH_DEFER(&t->lk, lk);
     return t->fds[fd];
+}
+
+char *
+fddir(struct FDTable *t, int fd)
+{
+    if (fd < 0 || fd >= LINUX_NOFILE)
+        return false;
+    LOCK_WITH_DEFER(&t->lk, lk);
+    return t->dirs[fd];
+}
+
+struct FDFile *
+fdgetfile(struct FDTable *t, int fd)
+{
+    if (fd < 0 || fd >= LINUX_NOFILE)
+        return false;
+    LOCK_WITH_DEFER(&t->lk, lk);
+    return t->files[fd];
 }
 
 int
@@ -98,6 +131,20 @@ fdclose(struct FDTable *t, int fd)
     return true;
 }
 
+bool
+fdfclose(struct FDTable *t, int fd)
+{
+    if (fd < 0 || fd >= LINUX_NOFILE)
+        return false;
+    LOCK_WITH_DEFER(&t->lk, lk);
+    struct FDFile *f = t->files[fd];
+    if (f == NULL)
+        return false;
+    filefree(f);
+    t->files[fd] = NULL;
+    return true;
+}
+
 void
 fdinit(struct LPSLinuxEngine *engine, struct FDTable *t)
 {
@@ -105,11 +152,16 @@ fdinit(struct LPSLinuxEngine *engine, struct FDTable *t)
 
     for (size_t i = 0; i < LINUX_NOFILE; i++) {
         t->fds[i] = -1;
+        t->files[i] = NULL;
     }
 
-    t->fds[0] = dup(STDIN_FILENO);
-    t->fds[1] = dup(STDOUT_FILENO);
-    t->fds[2] = dup(STDERR_FILENO);
+    // t->fds[0] = dup(STDIN_FILENO);
+    // t->fds[1] = dup(STDOUT_FILENO);
+    // t->fds[2] = dup(STDERR_FILENO);
+
+    t->files[0] = filenew(dup(STDIN_FILENO), NULL);
+    t->files[1] = filenew(dup(STDOUT_FILENO), NULL);
+    t->files[2] = filenew(dup(STDERR_FILENO), NULL);
 
     t->passthrough = engine->opts.passthrough;
 }

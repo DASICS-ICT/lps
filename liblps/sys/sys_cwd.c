@@ -16,9 +16,9 @@ int
 sys_fchdir(struct LPSThread *t, int fd)
 {
     // lock
-    if (t->proc->fdtable.fds[fd] == -1)
+    if (fdget(&t->proc->fdtable, fd) == -1)
         return -LINUX_EBADF;
-    char *dir = t->proc->fdtable.dirs[fd];
+    char *dir = fddir(&t->proc->fdtable, fd);
     if (!dir)
         return -LINUX_ENOTDIR;
     return proc_chdir(t->proc, dir);

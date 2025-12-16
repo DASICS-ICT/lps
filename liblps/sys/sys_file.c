@@ -13,13 +13,15 @@ sys_write(struct LPSThread *t, int fd, uintptr_t bufp, size_t size)
 {
     if (size == 0)
         return 0;
-    int kfd = fdget(&t->proc->fdtable, fd);
-    if (kfd == -1)
+    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    if (f == NULL)
         return -LINUX_EBADF;
+    if (!f->write)
+        return -LINUX_EPERM;
     uint8_t *buf = bufhost(t, bufp, size, 1);
     if (!buf)
         return -LINUX_EINVAL;
-    return HOST_ERR(ssize_t, write(kfd, buf, size));
+    return f->write(f->dev, buf, size);
 }
 
 ssize_t
@@ -52,13 +54,15 @@ sys_read(struct LPSThread *t, int fd, uintptr_t bufp, size_t size)
 {
     if (size == 0)
         return 0;
-    int kfd = fdget(&t->proc->fdtable, fd);
-    if (kfd == -1)
+    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    if (f == NULL)
         return -LINUX_EBADF;
+    if (!f->read)
+        return -LINUX_EPERM;
     uint8_t *buf = bufhost(t, bufp, size, 1);
     if (!buf)
         return -LINUX_EINVAL;
-    return HOST_ERR(ssize_t, read(kfd, buf, size));
+    return f->read(f->dev, buf, size);
 }
 
 ssize_t
@@ -106,7 +110,6 @@ sys_openat(struct LPSThread *t, int dirfd, uintptr_t pathp, int flags,
         return -LINUX_EBADF;
     char host_path[FILENAME_MAX];
     char *path = pathcopyresolve(t, pathp, host_path, sizeof(host_path));
-    strncpy(host_path, path, FILENAME_MAX);
     if (!path)
         return -LINUX_ENOENT;
     int kfd = open(host_path, openflags(flags), mode);
@@ -115,18 +118,18 @@ sys_openat(struct LPSThread *t, int dirfd, uintptr_t pathp, int flags,
         free(path);
         return host_err(errno);
     }
-    bool isdir = host_isdir(host_path);
-    fdassign(&t->proc->fdtable, kfd, kfd, isdir ? path : NULL);
-    LOG(t->proc->engine, "sys_open(\"%s\") = %d", path, kfd);
-    if (!isdir)
-        free(path);
-    return kfd;
+    struct FDFile *f = filenew(kfd, path);
+    if (!f)
+        return -LINUX_ENOENT;
+    int fd = fdfassign(&t->proc->fdtable, f);
+    LOG(t->proc->engine, "sys_open(\"%s\") = %d(kfd:%d)", path, fd, kfd);
+    return fd;
 }
 
 int
 sys_close(struct LPSThread *t, int fd)
 {
-    if (!fdclose(&t->proc->fdtable, fd))
+    if (!fdfclose(&t->proc->fdtable, fd))
         return -LINUX_EBADF;
     return 0;
 }
@@ -135,41 +138,47 @@ sys_close(struct LPSThread *t, int fd)
 off_t
 sys_lseek(struct LPSThread *t, int fd, off_t offset, int whence)
 {
-    int kfd = fdget(&t->proc->fdtable, fd);
-    if (kfd == -1)
+    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    if (f == NULL)
         return -LINUX_EBADF;
-    return HOST_ERR(off_t, lseek(kfd, offset, whence));
+    if (!f->lseek)
+        return -LINUX_EPERM;
+    return f->lseek(f->dev, offset, whence);
 }
 
 ssize_t
 sys_pread64(struct LPSThread *t, int fd, uintptr_t bufp, size_t size,
     ssize_t offset)
 {
-    int kfd = fdget(&t->proc->fdtable, fd);
-    if (kfd == -1)
+    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    if (!f)
         return -LINUX_EBADF;
+    if (!f->read || !f->read)
+        return -LINUX_EPERM;
     uint8_t *buf = bufhost(t, bufp, size, 1);
     if (!buf)
         return -LINUX_EFAULT;
-    ssize_t orig = lseek(kfd, 0, SEEK_CUR);
+    ssize_t orig = f->lseek(f->dev, 0, SEEK_CUR);
     if (orig < 0)
         return host_err(orig);
-    lseek(kfd, offset, SEEK_SET);
-    ssize_t n = read(kfd, buf, size);
-    lseek(kfd, orig, SEEK_SET);
+    f->lseek(f->dev, offset, SEEK_SET);
+    ssize_t n = f->read(f->dev, buf, size);
+    f->lseek(f->dev, orig, SEEK_SET);
     return n;
 }
 
 ssize_t
 sys_getdents64(struct LPSThread *t, int fd, uintptr_t dirp, size_t count)
 {
-    int kfd = fdget(&t->proc->fdtable, fd);
-    if (kfd == -1)
+    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    if (!f)
         return -LINUX_EBADF;
+    if (!f->getdents)
+        return -LINUX_EPERM;
     uint8_t *buf = bufhost(t, dirp, count, alignof(struct Dirent));
     if (!buf)
         return -LINUX_EINVAL;
-    return host_getdents64(kfd, buf, count);
+    return f->getdents(f->dev, buf, count);
 }
 
 int
@@ -190,19 +199,23 @@ sys_newfstatat(struct LPSThread *t, int dirfd, uintptr_t pathp,
             return -LINUX_EBADF;
         return host_fstatat(LINUX_AT_FDCWD, host_path, stat_, flags);
     }
-    int kfd = fdget(&t->proc->fdtable, dirfd);
-    if (kfd == -1)
+    struct FDFile *f = fdgetfile(&t->proc->fdtable, dirfd);
+    if (!f)
         return -LINUX_EBADF;
-    return host_fstatat(kfd, "", stat_, LINUX_AT_EMPTY_PATH);
+    if (!f->stat_)
+        return -LINUX_EPERM;
+    return f->stat_(f->dev, stat_);
 }
 
 int
 sys_fchmod(struct LPSThread *t, int fd, linux_mode_t mode)
 {
-    int kfd = fdget(&t->proc->fdtable, fd);
-    if (kfd == -1)
+    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    if (!f)
         return -LINUX_EBADF;
-    return HOST_ERR(int, fchmod(fd, mode));
+    if (!f->chmod)
+        return -LINUX_EPERM;
+    return f->chmod(f->dev, mode);
 }
 
 int
@@ -219,28 +232,34 @@ sys_truncate(struct LPSThread *t, uintptr_t pathp, off_t length)
 int
 sys_ftruncate(struct LPSThread *t, int fd, off_t length)
 {
-    int kfd = fdget(&t->proc->fdtable, fd);
-    if (kfd == -1)
+    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    if (!f)
         return -LINUX_EBADF;
-    return HOST_ERR(int, ftruncate(kfd, length));
+    if (!f->truncate)
+        return -LINUX_EPERM;
+    return f->truncate(f->dev, length);
 }
 
 int
 sys_fchown(struct LPSThread *t, int fd, linux_uid_t owner,
     linux_gid_t group)
 {
-    int kfd = fdget(&t->proc->fdtable, fd);
-    if (kfd == -1)
+    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    if (!f)
         return -LINUX_EBADF;
-    return HOST_ERR(int, fchown(kfd, owner, group));
+    if (!f->chown)
+        return -LINUX_EPERM;
+    return f->chown(f->dev, owner, group);
 }
 int
 sys_fsync(struct LPSThread *t, int fd)
 {
-    int kfd = fdget(&t->proc->fdtable, fd);
-    if (kfd == -1)
+    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    if (!f)
         return -LINUX_EBADF;
-    return HOST_ERR(int, fsync(kfd));
+    if (!f->sync)
+        return -LINUX_EPERM;
+    return f->sync(f->dev);
 }
 
 int

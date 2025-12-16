@@ -1,25 +1,12 @@
 #pragma once
 
 #include "linux.h"
+#include "fd.h"
 
 #include <pthread.h>
 
-
-// Maximum number of file descriptors the LFI runtime process can have open.
-#define LINUX_NOFILE 1024
 // Maximum number of bytes that can be allocated via sys_brk.
 #define BRKMAXSIZE (512UL * 1024 * 1024)
-
-struct FDTable {
-    // File descriptor conversion table.
-    int fds[LINUX_NOFILE];
-    // Full sandbox path for opened directories. This is necessary for
-    // supporting fchdir(fd).
-    char *dirs[LINUX_NOFILE];
-    pthread_mutex_t lk;
-
-    bool passthrough;
-};
 
 // Information from loading the ELF image.
 struct ELFLoadInfo {

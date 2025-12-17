@@ -6,6 +6,7 @@ srcs += files(
     'sys_mem.c',
     'sys_none.c',
     'sys_passthrough.c',
+    'sys_pipe.c',
     'sys_proc.c',
     'sys_ptrctl.c',
     'sys_rand.c',

@@ -44,16 +44,17 @@ void
 lps_thread_exit(struct LPSThread *t);
 
 // Scheduler functions
-struct RRScheduler;
-
-struct RRScheduler *
-rrschedinit();
+void
+rrschedadd(struct LPSThread *t);
 
 void
-rrschedadd(struct RRScheduler *s, struct LPSThread *t);
+rrschedstart();
 
-void
-rrschedstart(struct RRScheduler *s);
+// fd assign functions
+struct FDFile;
+
+int
+lps_proc_fd_assign(struct LPSProc *proc, int fd, struct FDFile *f);
 
 #ifdef __cplusplus
 }

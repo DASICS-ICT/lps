@@ -212,6 +212,7 @@ lps_thread_new(struct LPSProc *proc, int argc, const char **argv,
         goto err2;
     }
     t->tid = next_tid(proc);
+    list_init(&t->elem);
 
     size_t stacksize = 2ULL * 1024 * 1024; // TODO: configurable
     uintptr_t end = proc->boxinfo.base + proc->boxinfo.size;

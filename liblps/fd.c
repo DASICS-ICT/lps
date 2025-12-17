@@ -23,6 +23,16 @@ fdfassign(struct FDTable *t, struct FDFile *f)
     return -1;
 }
 
+int
+fdassign(struct FDTable *t, int fd, struct FDFile *f)
+{
+    LOCK_WITH_DEFER(&t->lk, t_lk);
+    if (t->files[fd] != NULL)
+        return -1;
+    t->files[fd] = f;
+    return fd;
+}
+
 struct FDFile *
 fdfget(struct FDTable *t, int fd)
 {

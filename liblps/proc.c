@@ -103,7 +103,7 @@ proc_mapany(struct LPSProc *p, size_t size, int prot, int flags, int fd,
 {
     int kfd = -1;
     if (fd >= 0) {
-        kfd = fdget(&p->fdtable, fd);
+        kfd = fdfget(&p->fdtable, fd)->kfd;
         if (kfd == -1)
             return -LINUX_EBADF;
     }
@@ -121,7 +121,7 @@ proc_mapat(struct LPSProc *p, uintptr_t start, size_t size, int prot,
 {
     int kfd = -1;
     if (fd >= 0) {
-        kfd = fdget(&p->fdtable, fd);
+        kfd = fdfget(&p->fdtable, fd)->kfd;
         if (kfd == -1)
             return LINUX_EBADF;
     }

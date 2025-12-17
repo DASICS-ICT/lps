@@ -13,7 +13,7 @@ sys_write(struct LPSThread *t, int fd, uintptr_t bufp, size_t size)
 {
     if (size == 0)
         return 0;
-    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    struct FDFile *f = fdfget(&t->proc->fdtable, fd);
     if (f == NULL)
         return -LINUX_EBADF;
     if (!f->write)
@@ -54,7 +54,7 @@ sys_read(struct LPSThread *t, int fd, uintptr_t bufp, size_t size)
 {
     if (size == 0)
         return 0;
-    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    struct FDFile *f = fdfget(&t->proc->fdtable, fd);
     if (f == NULL)
         return -LINUX_EBADF;
     if (!f->read)
@@ -122,6 +122,11 @@ sys_openat(struct LPSThread *t, int dirfd, uintptr_t pathp, int flags,
     if (!f)
         return -LINUX_ENOENT;
     int fd = fdfassign(&t->proc->fdtable, f);
+    if (fd < 0) {
+        LOG(t->proc->engine, "sys_open(\"%s\") = %d", path, -LINUX_EMFILE);
+        free(path);
+        return -LINUX_EMFILE;
+    }
     LOG(t->proc->engine, "sys_open(\"%s\") = %d(kfd:%d)", path, fd, kfd);
     return fd;
 }
@@ -138,7 +143,7 @@ sys_close(struct LPSThread *t, int fd)
 off_t
 sys_lseek(struct LPSThread *t, int fd, off_t offset, int whence)
 {
-    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    struct FDFile *f = fdfget(&t->proc->fdtable, fd);
     if (f == NULL)
         return -LINUX_EBADF;
     if (!f->lseek)
@@ -150,7 +155,7 @@ ssize_t
 sys_pread64(struct LPSThread *t, int fd, uintptr_t bufp, size_t size,
     ssize_t offset)
 {
-    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    struct FDFile *f = fdfget(&t->proc->fdtable, fd);
     if (!f)
         return -LINUX_EBADF;
     if (!f->read || !f->read)
@@ -170,7 +175,7 @@ sys_pread64(struct LPSThread *t, int fd, uintptr_t bufp, size_t size,
 ssize_t
 sys_getdents64(struct LPSThread *t, int fd, uintptr_t dirp, size_t count)
 {
-    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    struct FDFile *f = fdfget(&t->proc->fdtable, fd);
     if (!f)
         return -LINUX_EBADF;
     if (!f->getdents)
@@ -199,7 +204,7 @@ sys_newfstatat(struct LPSThread *t, int dirfd, uintptr_t pathp,
             return -LINUX_EBADF;
         return host_fstatat(LINUX_AT_FDCWD, host_path, stat_, flags);
     }
-    struct FDFile *f = fdgetfile(&t->proc->fdtable, dirfd);
+    struct FDFile *f = fdfget(&t->proc->fdtable, dirfd);
     if (!f)
         return -LINUX_EBADF;
     if (!f->stat_)
@@ -210,7 +215,7 @@ sys_newfstatat(struct LPSThread *t, int dirfd, uintptr_t pathp,
 int
 sys_fchmod(struct LPSThread *t, int fd, linux_mode_t mode)
 {
-    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    struct FDFile *f = fdfget(&t->proc->fdtable, fd);
     if (!f)
         return -LINUX_EBADF;
     if (!f->chmod)
@@ -232,7 +237,7 @@ sys_truncate(struct LPSThread *t, uintptr_t pathp, off_t length)
 int
 sys_ftruncate(struct LPSThread *t, int fd, off_t length)
 {
-    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    struct FDFile *f = fdfget(&t->proc->fdtable, fd);
     if (!f)
         return -LINUX_EBADF;
     if (!f->truncate)
@@ -244,7 +249,7 @@ int
 sys_fchown(struct LPSThread *t, int fd, linux_uid_t owner,
     linux_gid_t group)
 {
-    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    struct FDFile *f = fdfget(&t->proc->fdtable, fd);
     if (!f)
         return -LINUX_EBADF;
     if (!f->chown)
@@ -254,7 +259,7 @@ sys_fchown(struct LPSThread *t, int fd, linux_uid_t owner,
 int
 sys_fsync(struct LPSThread *t, int fd)
 {
-    struct FDFile *f = fdgetfile(&t->proc->fdtable, fd);
+    struct FDFile *f = fdfget(&t->proc->fdtable, fd);
     if (!f)
         return -LINUX_EBADF;
     if (!f->sync)
@@ -368,7 +373,7 @@ sys_readlinkat(struct LPSThread *t, int dirfd, uintptr_t pathp, uintptr_t bufp,
 int
 sys_dup(struct LPSThread *t, int oldfd)
 {
-    return fddup2(&t->proc->fdtable, oldfd, -1);
+    return fdfdup2(&t->proc->fdtable, oldfd, -1);
 }
 
 int
@@ -376,5 +381,5 @@ sys_dup3(struct LPSThread *t, int oldfd, int newfd, int flags)
 {
     if (flags != 0)
         return -LINUX_EINVAL;
-    return fddup2(&t->proc->fdtable, oldfd, newfd);
+    return fdfdup2(&t->proc->fdtable, oldfd, newfd);
 }

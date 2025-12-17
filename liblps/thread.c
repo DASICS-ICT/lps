@@ -239,13 +239,13 @@ err1:
 EXPORT void
 lps_thread_run(struct LPSThread *t)
 {
-    LOG(t->proc->engine, "Thread %lx entered", (uintptr_t)t);
+    // LOG(t->proc->engine, "Thread %lx entered", (uintptr_t)t);
     lps_kswitch_to(t->ctx);
 }
 
 EXPORT void
 lps_thread_exit(struct LPSThread *t)
 {
-    LOG(t->proc->engine, "Thread %lx exited", (uintptr_t)t);
+    // LOG(t->proc->engine, "Thread %lx exited", (uintptr_t)t);
     lps_kswitch_from(t->ctx);
 }

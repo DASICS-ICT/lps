@@ -9,6 +9,7 @@ srcs += files(
     'sys_proc.c',
     'sys_ptrctl.c',
     'sys_rand.c',
+    'sys_rtcall.c',
     'sys_thread.c',
     'sys_time.c',
 )

@@ -293,3 +293,6 @@ sys_dup(struct LPSThread *t, int oldfd);
 
 int
 sys_dup3(struct LPSThread *t, int oldfd, int newfd, int flags);
+
+int
+sys_runtime_call(struct LPSThread *t, int type);

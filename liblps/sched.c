@@ -1,49 +1,39 @@
 #include "sched.h"
-#include "proc.h"
 #include "log.h"
+#include "proc.h"
 
 #include <stdlib.h>
 
-EXPORT struct RRScheduler *
-rrschedinit()
-{
-    struct RRScheduler *s = malloc(sizeof(struct RRScheduler));
-    if (!s)
-        return NULL;
-    queue_init(&s->runq);
-    queue_init(&s->exitq);
-}
+// global queue for RRScheduler
+static QUEUE_INIT(runq);
+static QUEUE_INIT(exitq);
 
 static struct LPSThread* 
-get_next_runable(struct RRScheduler *s) {
-    if (queue_is_empty(&s->runq)) {
-        return NULL;       
-    }
-    struct list_node *node = queue_dequeue(&s->runq);
-    struct LPSThread *t = list_entry(node, struct LPSThread, list);
-    return t;
+get_next_runable() {
+    struct List *e = queue_dequeue(&runq);
+    if (!e)
+        return NULL;
+    return LIST_CONTAINER(struct LPSThread, elem, e);
 }
 
 EXPORT void
-rrschedadd(struct RRScheduler *s, struct LPSThread *t)
+rrschedadd(struct LPSThread *t)
 {
-    queue_enqueue(&s->runq, &t->list);
+    queue_enqueue(&runq, &t->elem);
 }
 
 EXPORT void
-rrschedstart(struct RRScheduler *s)
+rrschedstart()
 {
     // Round robin scheduler
     fprintf(stderr, "[RRScheduler]: start scheduling\n");
     while(true) {
-        struct LPSThread *t = get_next_runable(s);
-
+        struct LPSThread *t = get_next_runable();
         if (t == NULL) return;
 
         lps_thread_run(t);
-
         if (t->state == THREAD_RUNNABLE) {
-            rrschedadd(s, t);
+            queue_enqueue(&runq, &t->elem);
         }
 
         if (t->state == THREAD_EXITED) {
@@ -51,4 +41,24 @@ rrschedstart(struct RRScheduler *s)
         }
     }
     fprintf(stderr, "[RRScheduler]: end scheduling\n");
+}
+
+void
+rrschedblock(struct Queue *q)
+{
+    struct LPSThread *t = lps_ctx_data(lps_cur_ctx());
+    t->state = THREAD_BOLCKED;
+    queue_enqueue(q, &t->elem);
+    lps_thread_exit(t);
+}
+
+void
+rrschedwake(struct Queue *q)
+{
+    struct List *e;
+    while ((e = queue_dequeue(q)) != NULL) {
+        struct LPSThread *t = LIST_CONTAINER(struct LPSThread, elem, e);
+        t->state = THREAD_RUNNABLE;
+        queue_enqueue(&runq, &t->elem);
+    }
 }

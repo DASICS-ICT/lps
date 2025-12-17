@@ -69,7 +69,7 @@ struct LPSThread {
         THREAD_EXITED,
     } state;
 
-    struct list_node list;
+    struct List elem;
 
     struct LPSProc *proc;
 };

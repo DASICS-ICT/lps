@@ -40,6 +40,10 @@ fdinit(struct LPSLinuxEngine *engine, struct FDTable *t);
 void
 fdfree(struct FDTable *t);
 
-// find and assign FDFile in FDTable, return fd
+// Find and assign FDFile in FDTable, return fd
 int
 fdfassign(struct FDTable *t, struct FDFile *f);
+
+// Assign fd to FDFile f
+int
+fdassign(struct FDTable *t, int fd, struct FDFile *f);

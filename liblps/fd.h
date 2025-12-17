@@ -12,41 +12,20 @@
 #define LINUX_NOFILE 1024
 
 struct FDTable {
-    // File descriptor conversion table.
-    int fds[LINUX_NOFILE];
     // File abstact layer
     struct FDFile *files[LINUX_NOFILE];
-    // Full sandbox path for opened directories. This is necessary for
-    // supporting fchdir(fd).
-    char *dirs[LINUX_NOFILE];
-    pthread_mutex_t lk;
 
-    bool passthrough;
+    pthread_mutex_t lk;
 };
 
-// Assign the host file descriptor to fd.
-bool
-fdassign(struct FDTable *t, int fd, int host_fd, char *dir);
-
-// Returns the host file descriptor associated with fd.
-int
-fdget(struct FDTable *t, int fd);
-
-char *
-fddir(struct FDTable *t, int fd);
-
+// Returns the file structure associated with fd.
 struct FDFile *
-fdgetfile(struct FDTable *t, int fd);
+fdfget(struct FDTable *t, int fd);
 
 // Adjust newfd so that it now points to oldfd. If newfd is -1, allocates a new
 // file descriptor for newfd automatically (same behavior as dup).
 int
-fddup2(struct FDTable *t, int oldfd, int newfd);
-
-// Close the host file descriptor associated with fd and remove the
-// slot for fd in the table.
-bool
-fdclose(struct FDTable *t, int fd);
+fdfdup2(struct FDTable *t, int oldfd, int newfd);
 
 // Close the FDFile structure associated with fd and remove the
 // slot for fd in the table.

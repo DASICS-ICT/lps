@@ -8,6 +8,7 @@ srcs = files(
     'sys.c',
     'thread.c',
     'cwalk.c',
+    'kfile.c',
 )
 
 subdir('sys')

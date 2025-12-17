@@ -16,9 +16,10 @@ int
 sys_fchdir(struct LPSThread *t, int fd)
 {
     // lock
-    if (fdget(&t->proc->fdtable, fd) == -1)
+    struct FDFile *f = fdfget(&t->proc->fdtable, fd);
+    if (!f)
         return -LINUX_EBADF;
-    char *dir = fddir(&t->proc->fdtable, fd);
+    char *dir = f->path; // Muti-thread Safe?
     if (!dir)
         return -LINUX_ENOTDIR;
     return proc_chdir(t->proc, dir);

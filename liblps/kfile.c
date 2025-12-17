@@ -1,5 +1,11 @@
 #include "kfile.h"
 #include "host.h"
+#include "lock.h"
+
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
 
 static inline int
 getkfd(struct FDFile *f)
@@ -22,14 +28,14 @@ kwrite(void *dev, uint8_t *buf, size_t size)
 }
 
 static ssize_t
-klseek(void *dev, off_t off, int whence)
+klseek(void *dev, linux_off_t off, int whence)
 {
     int kfd = getkfd((struct FDFile *)dev);
     return HOST_ERR(ssize_t, lseek(kfd, off, whence));
 }
 
 static int
-kftruncate(void *dev, off_t length)
+kftruncate(void *dev, linux_off_t length)
 {
     int kfd = getkfd((struct FDFile *)dev);
     return HOST_ERR(int, ftruncate(kfd, length));
@@ -77,6 +83,14 @@ kgetdents(void* dev, void* dirp, size_t count)
     return host_getdents64(kfd, dirp, count);
 }
 
+static int
+kioctl
+(void *dev, unsigned long request, void *arg)
+{
+    int kfd = getkfd((struct FDFile *)dev);
+    return HOST_ERR(int, ioctl(kfd, request, arg));
+}
+
 // file 
 struct FDFile *
 filenew(int kfd, char *path)
@@ -94,10 +108,11 @@ filenew(int kfd, char *path)
         .close = kclose,
         .stat_ = kstat,
         .getdents = kgetdents,
-        .chown = kchmod,
+        .chown = kfchown,
         .chmod = kchmod,
         .truncate = kftruncate,
         .sync = ksync,
+        .ioctl = kioctl,
         .kfd = kfd,
         .path = path,
     };
@@ -110,6 +125,11 @@ filefree(struct FDFile *f)
 {
     if (!f)
         return;
+    LOCK_WITH_DEFER(&f->lk_refs, lk_refs);
+    f->refs--;
+    if (!f->refs)
+        return;
+    // Actually free f
     if (f->path)
         free(f->path);
     if (!f->close) {

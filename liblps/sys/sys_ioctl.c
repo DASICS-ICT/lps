@@ -26,10 +26,12 @@ sys_ioctl(struct LPSThread *t, int fd, unsigned long request,
         return -LINUX_EINVAL;
 
     struct winsize ws;
-    int kfd = fdget(&t->proc->fdtable, fd);
-    if (kfd == -1)
+    struct FDFile *f = fdfget(&t->proc->fdtable, fd);
+    if (!f)
         return -LINUX_EBADF;
-    int e = ioctl(kfd, TIOCGWINSZ, &ws);
+    if (!f->ioctl)
+        return -LINUX_EPERM;
+    int e = f->ioctl(f->dev, TIOCGWINSZ, &ws);
     if (e != 0)
         return -errno;
     struct WinSize box_ws = (struct WinSize) {

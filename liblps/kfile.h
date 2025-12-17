@@ -19,6 +19,7 @@ struct FDFile {
     int     (*chmod)(void*, linux_mode_t);
     int     (*truncate)(void*, linux_off_t);
     int     (*sync)(void*);
+    int     (*ioctl)(void*, unsigned long, void *);
 
     int kfd;
     char *path;

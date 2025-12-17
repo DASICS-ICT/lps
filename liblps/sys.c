@@ -19,6 +19,7 @@ syshandle(struct LPSThread *t, uintptr_t sysno, uintptr_t a0, uintptr_t a1,
     SYS(clone, sys_nosys(t, "clone"))
     SYS(exit_group, sys_exit_group(t, a0))
     SYS(exit, sys_exit(t, a0))
+    LPS(runtime_call, sys_runtime_call(t, a0));
     }
 
     if (!handled && t->proc->engine->opts.passthrough) {

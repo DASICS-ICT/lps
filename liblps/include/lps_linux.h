@@ -43,6 +43,18 @@ lps_thread_run(struct LPSThread *t);
 void
 lps_thread_exit(struct LPSThread *t);
 
+// Scheduler functions
+struct RRScheduler;
+
+struct RRScheduler *
+rrschedinit();
+
+void
+rrschedadd(struct RRScheduler *s, struct LPSThread *t);
+
+void
+rrschedstart(struct RRScheduler *s);
+
 #ifdef __cplusplus
 }
 #endif

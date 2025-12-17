@@ -3,9 +3,9 @@
 #include "arch_sys.h"
 #include "proc.h"
 
-#define LPS_SYS_pause 1024
+#define LPS_SYS_runtime_call 500
 
-_Static_assert(LPS_SYS_pause > LINUX_SYS_LAST, "LPS_SYS_pause invalid");
+_Static_assert(LPS_SYS_runtime_call > LINUX_SYS_LAST, "LPS_SYS_runtime_call invalid");
 
 #define SYS(SYSNAME, expr)    \
     case LINUX_SYS_##SYSNAME: \

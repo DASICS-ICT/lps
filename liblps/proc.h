@@ -2,6 +2,7 @@
 
 #include "linux.h"
 #include "fd.h"
+#include "list.h"
 
 #include <pthread.h>
 
@@ -67,6 +68,8 @@ struct LPSThread {
         THREAD_BOLCKED,
         THREAD_EXITED,
     } state;
+
+    struct list_node list;
 
     struct LPSProc *proc;
 };

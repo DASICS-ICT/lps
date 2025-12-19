@@ -29,9 +29,9 @@ uint64_t get_time(void) {
 #define INTERVAL 100000000
 
 void u_intr_handler(void) {
-	uint64_t ucause = csr_read(ucause);
-    uint64_t utval = csr_read(utval);
-    uint64_t uepc = csr_read(uepc);
+	uint64_t ucause = csr_read(0x042);
+    uint64_t utval = csr_read(0x043);
+    uint64_t uepc = csr_read(0x041);
 	printf("[U_INTR_HANDLER] catch u-intr, ucause = 0x%lx, uepc = 0x%lx, utval = 0x%lx\n", ucause, uepc, utval);
 	if (ucause == CAUSE_IRQ_U_TIMER){
         uint64_t next = get_time() + INTERVAL;

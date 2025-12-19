@@ -1,9 +1,3 @@
-[submodule "lfi-run/test/sbase"]
-	path = lfi-run/test/sbase
-	url = https://github.com/zyedidia/sbase
-[submodule "toolchain/lfi-gcc"]
-	path = toolchain/lfi-gcc
-	url = https://github.com/zyedidia/lfi-gcc
 [submodule "macrobenchmark/CPU2006LiteWrapper"]
 	path = macrobenchmark/CPU2006LiteWrapper
 	url = https://github.com/DASICS-ICT/CPU2006LiteWrapper.git

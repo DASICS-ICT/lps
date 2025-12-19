@@ -37,6 +37,6 @@
 #else
 #define DBG(fmt, ...)                                                                   \
     do {                                                                                \
-        fprintf(stderr, SGR_DEBUG "[lps]: " fmt SGR_RESET "\n", ##__VA_ARGS__);      \
+        fprintf(stderr, SGR_DEBUG "[" LOG_TAG "] " fmt SGR_RESET "\n", ##__VA_ARGS__);  \
     } while (0)
 #endif

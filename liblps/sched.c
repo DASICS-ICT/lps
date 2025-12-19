@@ -23,8 +23,11 @@ rrschedadd(struct LPSThread *t)
 }
 
 EXPORT void
-rrschedstart()
+rrschedstart(bool utimer)
 {
+    if (utimer) {
+        lps_utimer_init();
+    }
     // Round robin scheduler
     fprintf(stderr, "[RRScheduler]: start scheduling\n");
     while(true) {

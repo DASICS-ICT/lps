@@ -163,6 +163,10 @@ lps_kswitch_to(struct LPSContext *ctx);
 void
 lps_kswitch_from(struct LPSContext *ctx);
 
+// utimer
+void
+lps_utimer_init();
+
 
 #ifdef __cplusplus
 }

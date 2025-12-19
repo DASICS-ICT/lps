@@ -113,11 +113,28 @@ syshandle(struct LPSThread *t, uintptr_t sysno, uintptr_t a0, uintptr_t a1,
     return r;
 }
 
+inline static uint64_t get_time(void) {
+    uint64_t time;
+    asm volatile ("rdtime %0" : "=r"(time));
+    return time;
+}
+
 void arch_syshandle(struct LPSContext *ctx)
 {
     struct LPSThread *t = lps_ctx_data(ctx);
     assert(t);
     struct LPSRegs *regs = lps_ctx_regs(ctx);
+
+    if (regs->ucasue == CAUSE_IRQ_U_TIME) {
+        // TODO: check overflow
+        uint64_t next = get_time() + 10000000;
+		DBG("[U_INTR_HANDLER] set utimecmp to %lu", next);
+		csr_write(CSR_UTIMECMP, next);
+
+        // TODO: sched
+        lps_thread_exit(t);
+        return;
+    }
 
     assert(regs->ucasue == CAUSE_DASICS_U_CHECK_FAULT);
     

@@ -83,7 +83,7 @@ main(int argc, char** argv)
     struct LPSThread *t = lps_thread_new(proc, argc - 1, (const char **)(argv + 1) , &envp);
 
     rrschedadd(t);
-    rrschedstart();
+    rrschedstart(false);
     
     return 0;
 }

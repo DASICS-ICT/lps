@@ -60,3 +60,27 @@
 #define CSR_DJBOUND3LO      0x8c6
 #define CSR_DJBOUND3HI      0x8c7
 #define CSR_DJCFG           0x8c8
+
+// Define __ASM_STR if not already defined
+#ifndef __ASM_STR
+#define __ASM_STR(x) #x
+#endif
+
+#define csr_read(csr)                                   \
+    ({                                                  \
+        register unsigned long __v;                     \
+        __asm__ __volatile__("csrr %0, " __ASM_STR(csr) \
+                     : "=r"(__v)                        \
+                     :                                  \
+                     : "memory");                       \
+        __v;                                            \
+    })
+
+#define csr_write(csr, val)                                \
+    ({                                                     \
+        unsigned long __v = (unsigned long)(val);          \
+        __asm__ __volatile__("csrw " __ASM_STR(csr) ", %0" \
+                     :                                     \
+                     : "rK"(__v)                           \
+                     : "memory");                          \
+    })

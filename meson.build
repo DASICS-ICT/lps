@@ -109,3 +109,4 @@ subdir('preempt-test')
 
 subdir('lps-go')
 subdir('lps-pipe')
+subdir('lps-preempt')

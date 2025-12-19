@@ -48,7 +48,7 @@ void
 rrschedadd(struct LPSThread *t);
 
 void
-rrschedstart();
+rrschedstart(bool utimer);
 
 // Create a Pipe from a proc to another, write fromfd and read tofd
 bool

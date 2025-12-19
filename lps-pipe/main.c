@@ -100,7 +100,7 @@ main(int argc, char** argv)
     rrschedadd(ping);
     rrschedadd(pong);
 
-    rrschedstart();
+    rrschedstart(false);
     
     return 0;
 }

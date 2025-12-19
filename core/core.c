@@ -1,6 +1,7 @@
 #include "core.h"
 #include "lps_core.h"
 #include "log.h"
+#include "ucsr.h"
 
 #include <assert.h>
 #include <signal.h>
@@ -36,8 +37,12 @@ lps_new(struct LPSOptions opts, size_t nsandboxes) {
         .opts = opts,
     };
 
-    // TODO: make it init only once
-    lps_init_dasics();
+    // TODO: check thread-safety
+    static int initialized = 0;
+    if (!initialized) {
+        lps_init_dasics();
+        initialized = 1;
+    }
 
     LOG(engine, "initialized LPS engine: %ld GiB",
         reserve / 1024 / 1024 / 1024);
@@ -71,4 +76,11 @@ lps_syscall_handler(struct LPSContext *ctx)
     assert(ctx->box->engine->sys_handler &&
         "engine does not have a system call handler");
     ctx->box->engine->sys_handler(ctx);
+}
+
+EXPORT void
+lps_utimer_init()
+{
+    csr_write(CSR_USTATUS,  0x10);
+    csr_write(CSR_UIE, 0x111);
 }

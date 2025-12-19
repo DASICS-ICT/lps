@@ -162,10 +162,3 @@ proc_chdir(struct LPSProc *p, const char *path)
     }
     return 0;
 }
-
-EXPORT int
-lps_proc_fd_assign(struct LPSProc *proc, int fd, struct FDFile *f)
-{
-    // force
-    return fdassign(&proc->fdtable, fd, f);
-}

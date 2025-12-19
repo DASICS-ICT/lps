@@ -50,11 +50,9 @@ rrschedadd(struct LPSThread *t);
 void
 rrschedstart();
 
-// fd assign functions
-struct FDFile;
-
-int
-lps_proc_fd_assign(struct LPSProc *proc, int fd, struct FDFile *f);
+// Create a Pipe from a proc to another, write fromfd and read tofd
+bool
+lps_pipe_new(struct LPSProc *from, int fromfd, struct LPSProc *to, int tofd);
 
 #ifdef __cplusplus
 }

@@ -39,6 +39,9 @@ queue_dequeue(struct Queue *q) {
     q->dummy.next = elem->next;
     elem->next->prev = &q->dummy;
 
+    if (q->tail == elem)
+        q->tail = &q->dummy;
+
     return elem;
 }
 

@@ -108,3 +108,4 @@ subdir('utimer-test')
 subdir('preempt-test')
 
 subdir('lps-go')
+subdir('lps-pipe')

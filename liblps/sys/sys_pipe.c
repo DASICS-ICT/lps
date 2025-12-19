@@ -25,12 +25,12 @@ static ssize_t
 pipe_read(void *dev, uint8_t* buf, size_t n) 
 {
     struct Pipe* pipe = (struct Pipe*) dev;
-    // DBG("[pipe_read]: pipe:%p, nread:%u, nwrite:%u", pipe, pipe->nread, pipe->nwrite);
+    DBG("[pipe_read]: pipe:%p, nread:%u, nwrite:%u", pipe, pipe->nread, pipe->nwrite);
 
     while (pipe->nread == pipe->nwrite && pipe->writeopen) {
-        // DBG("[pipe_read]: pipe:%p, blocked", pipe);
+        DBG("[pipe_read]: pipe:%p, blocked", pipe);
         rrschedblock(&pipe->readq);
-        // DBG("[pipe_read]: pipe:%p, waked up", pipe);
+        DBG("[pipe_read]: pipe:%p, waked up", pipe);
     }
 
     ssize_t i = 0;
@@ -40,7 +40,7 @@ pipe_read(void *dev, uint8_t* buf, size_t n)
         buf[i] = pipe->data[pipe->nread++ % PIPESZ];
     }
 
-    // DBG("[pipe_read]: pipe:%p, nread:%u, nwrite:%u", pipe, pipe->nread, pipe->nwrite);
+    DBG("[pipe_read]: pipe:%p, nread:%u, nwrite:%u", pipe, pipe->nread, pipe->nwrite);
     rrschedwake(&pipe->writeq);
     return i;
 }
@@ -49,7 +49,7 @@ static ssize_t
 pipe_write(void *dev, uint8_t* buf, size_t n) 
 {
     struct Pipe* pipe = (struct Pipe*) dev;
-    // DBG("[pipe_write]: pipe:%p, nread:%u, nwrite:%u", pipe, pipe->nread, pipe->nwrite);
+    DBG("[pipe_write]: pipe:%p, nread:%u, nwrite:%u", pipe, pipe->nread, pipe->nwrite);
     
     ssize_t i = 0;
     while (i < n) {
@@ -59,16 +59,16 @@ pipe_write(void *dev, uint8_t* buf, size_t n)
         if (pipe->nwrite == pipe->nread + PIPESZ) {
             // pipe buf is full
             rrschedwake(&pipe->readq);
-            // DBG("[pipe_write]: pipe:%p, blocked", pipe);
+            DBG("[pipe_write]: pipe:%p, blocked", pipe);
             rrschedblock(&pipe->writeq);
-            // DBG("[pipe_write]: pipe:%p, waked up", pipe);
+            DBG("[pipe_write]: pipe:%p, waked up", pipe);
         } else {
             pipe->data[pipe->nwrite++ % PIPESZ] = buf[i];
             i++;
         }
     }
     rrschedwake(&pipe->readq);
-    // DBG("[pipe_write]: pipe:%p, nread:%u, nwrite:%u", pipe, pipe->nread, pipe->nwrite);
+    DBG("[pipe_write]: pipe:%p, nread:%u, nwrite:%u", pipe, pipe->nread, pipe->nwrite);
     return i;
 }
 
@@ -147,4 +147,32 @@ err2:
     free(f1);
 err1:
     return -1;
+}
+
+EXPORT bool
+lps_pipe_new(struct LPSProc *from, int fromfd, struct LPSProc *to, int tofd)
+{
+    struct FDFile *readf, *writef;
+
+    // pipe f1 -> f0
+    if (!pipe_new(&readf, &writef)) {
+        goto err1;
+    }
+
+    if (fdassign(&to->fdtable, tofd, readf) < 0) {
+        goto err2;
+    }
+    if (fdassign(&from->fdtable, fromfd, writef) < 0) {
+        goto err3;
+    }
+
+    return true;
+
+err3:
+    // fdremove
+err2:
+    free(readf);
+    free(writef);
+err1:    
+    return false;
 }

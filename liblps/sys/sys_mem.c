@@ -1,5 +1,6 @@
 #include "align.h"
 #include "sys/sys.h"
+#include "bound.h"
 
 #include <sys/mman.h>
 
@@ -28,24 +29,11 @@ sys_brk(struct LPSThread *t, uintptr_t addr)
     if (newsize == p->brksize)
         return brkp;
 
-    const int MAP_FLAGS = LINUX_MAP_PRIVATE | LINUX_MAP_ANONYMOUS;
-    const int MAP_PROT = PROT_READ | PROT_WRITE;
-
-    uintptr_t pagesize = 4 * 1024;
-
     if (brkp >= p->brkbase + p->brksize) {
         // LOCK_WITH_DEFER(&p->lk_box, lk_box);
-        uintptr_t map;
-        if (p->brksize == 0) {
-            map = lps_box_mapat(p->box, p->brkbase, newsize, MAP_PROT,
-                MAP_FLAGS, -1, 0);
-        } else {
-            uintptr_t next = ceilp(p->brkbase + p->brksize, pagesize);
-            map = lps_box_mapat(p->box, next, newsize - p->brksize, MAP_PROT,
-                MAP_FLAGS, -1, 0);
-        }
-        if (map == (uintptr_t) -1)
-            return -1;
+        // update heap size with bound register
+        lps_membound_set(t->ctx, MEMBOUND_HEAP, LIBCFG_R | LIBCFG_W,
+                p->brkbase, p->brkbase + newsize);
     }
     p->brksize = newsize;
     LOG(p->engine, "sys_brk(%lx) = %lx", addr, p->brkbase + p->brksize);

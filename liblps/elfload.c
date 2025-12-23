@@ -5,6 +5,7 @@
 #include <elf.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <assert.h>
 
 // We do not load ELF files that have more than 64 program headers.
 #define PHNUM_MAX 64
@@ -58,7 +59,6 @@ buf_read_elfseg(struct LPSProc *proc, uintptr_t start, uintptr_t offset,
             }
         }
 
-        return true;
 
     } else {
         p = lps_box_mapat(box, start, end - start, PROT_READ | PROT_WRITE,
@@ -77,8 +77,16 @@ buf_read_elfseg(struct LPSProc *proc, uintptr_t start, uintptr_t offset,
             return false;
         }
         
-        return true;
     }
+
+    assert(proc->seginfo.len < ELFSEGMAXN);
+    proc->seginfo.elfsegs[proc->seginfo.len++] = (struct ElfSeg) {
+        .start = start,
+        .end = end,
+        .prot = prot,
+    };
+    
+    return true;
 }
 
 // Load a single in-memory ELF image into the address space.

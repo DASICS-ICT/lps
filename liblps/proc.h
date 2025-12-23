@@ -33,6 +33,19 @@ struct ElfSection {
     size_t size;
 };
 
+struct ElfSeg {
+    uintptr_t start;
+    uintptr_t end;
+    int prot;
+};
+
+#define ELFSEGMAXN 4
+
+struct ELFSegInfo {
+    struct ElfSeg elfsegs[ELFSEGMAXN];
+    int len;
+};
+
 struct LPSProc {
     struct LPSBox *box;
     struct LPSBoxInfo boxinfo;
@@ -42,6 +55,7 @@ struct LPSProc {
 
     uintptr_t entry;
     struct ELFLoadInfo elfinfo;
+    struct ELFSegInfo seginfo;
 
     _Atomic(int) total_thread_count;
 

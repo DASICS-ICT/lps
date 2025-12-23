@@ -17,6 +17,7 @@ subdir('sys')
 liblps_linux = static_library(
     'lps-linux',
     srcs,
+    c_args: c_args_hardened,
     dependencies: [lps_core.as_link_whole()],
     install: true,
     include_directories: include_directories('include'),

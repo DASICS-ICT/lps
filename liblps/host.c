@@ -43,7 +43,6 @@ host_err(int err)
     }
 }
 
-// #if defined(HAVE_GETRANDOM)
 #include <sys/random.h>
 
 static unsigned int
@@ -56,26 +55,10 @@ randomflags(unsigned int flags)
         f |= GRND_NONBLOCK;
     return f;
 }
-// #endif
 
 ssize_t
 host_getrandom(void *buf, size_t size, unsigned int flags)
 {
-/*
-#if defined(HAVE_GETRANDOM)
-    ssize_t r = getrandom(buf, size, randomflags(flags));
-    if (r < 0)
-        return host_err(errno);
-    return r;
-#else
-    if (size > 256)
-        size = 256;
-    int r = getentropy(buf, size);
-    if (r < 0)
-        return host_err(errno);
-    return size;
-#endif
-*/
     ssize_t r = getrandom(buf, size, randomflags(flags));
     if (r < 0)
         return host_err(errno);

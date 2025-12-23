@@ -23,6 +23,6 @@ liblps_linux = static_library(
     include_directories: include_directories('include'),
 )
 
-lps_linux = declare_dependency(link_with: liblps_linux, include_directories: include_directories('include', '../core/include'))
+lps_linux = declare_dependency(link_with: liblps_linux, include_directories: include_directories('include', '../lps-core/include'))
 
 install_headers('include/lps_linux.h')

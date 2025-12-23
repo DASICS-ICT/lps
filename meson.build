@@ -43,7 +43,7 @@ if compiler.has_function('getdents64', prefix : '''#define _GNU_SOURCE
   defines += '-DHAVE_GETDENTS64'
 endif
 
-subdir('core')
-subdir('liblps')
+subdir('lps-core')
+subdir('lps-linux')
 
 subdir('apps')

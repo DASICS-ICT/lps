@@ -2,6 +2,7 @@
 #include "proc.h"
 #include "align.h"
 #include "lps_arch.h"
+#include "bound.h"
 
 #include <assert.h>
 #include <stdatomic.h>
@@ -192,10 +193,18 @@ sp_init(struct LPSThread *t, uintptr_t sp)
 }
 
 static void
-uepc_init(struct LPSThread *t, uintptr_t uepc) {
+uepc_init(struct LPSThread *t, uintptr_t uepc) 
+{
     struct LPSRegs *regs = lps_ctx_regs(t->ctx);
     regs->uepc = uepc;
     LOG(t->proc->engine, "uepc_init: 0x%lx", uepc);
+}
+
+static int
+dasics_flags(int prot) 
+{
+    return ((prot & PROT_READ) ? LIBCFG_R : 0) |
+            ((prot & PROT_WRITE) ? LIBCFG_W : 0);
 }
 
 struct LPSThread * 
@@ -227,6 +236,18 @@ lps_thread_new(struct LPSProc *proc, int argc, const char **argv,
     uintptr_t sp = stack_init(t, argc, argv, envp);
     sp_init(t, sp);
     uepc_init(t, proc->entry);
+
+    lps_membound_set(t->ctx, MEMBOUND_HEAP, 0, proc->brkbase, proc->brkbase);
+    lps_membound_set(t->ctx, MEMBOUND_STACK, LIBCFG_R | LIBCFG_W, 
+        t->stack, end);
+    for (int i = 0; i < proc->seginfo.len; i++) {
+        struct ElfSeg seg = proc->seginfo.elfsegs[i];
+        if (seg.prot & PROT_EXEC) {
+            lps_jmpbound_set(t->ctx, JMPBOUND_TEXT, seg.start, seg.end);
+        }
+        lps_membound_set(t->ctx, MEMBOUND_ELF0 + i, dasics_flags(seg.prot),
+            seg.start, seg.end);
+    }
 
     return t;
 err3:

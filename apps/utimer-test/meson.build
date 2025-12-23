@@ -8,6 +8,6 @@ srcs = files(
 executable(
   'utimer-test',
   sources: srcs,
-  link_args: ['-T', meson.current_source_dir() / 'ld.ld'],
+  link_args: app_link_args,
   install: true,
 )

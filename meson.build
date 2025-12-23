@@ -46,8 +46,4 @@ endif
 subdir('core')
 subdir('liblps')
 
-subdir('lps-go')
-subdir('lps-pipe')
-subdir('lps-preempt')
-
-subdir('utimer-test')
+subdir('apps')

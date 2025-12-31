@@ -124,4 +124,4 @@ u_intr_entry:
     SAVE_UINTR_CONTEXT
     call u_intr_handler
     RESTORE_UINTR_CONTEXT
-    uret 
+   .word 0x00200073

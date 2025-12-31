@@ -172,7 +172,7 @@ SECTIONS
     *(.sdata .sdata.* .gnu.linkonce.s.*)
   }
   _edata = .; PROVIDE (edata = .);
-  . = ALIGN(ALIGNOF(NEXT_SECTION));
+  /* . = ALIGN(ALIGNOF(NEXT_SECTION)); */
   __bss_start = .;
   .sbss           :
   {

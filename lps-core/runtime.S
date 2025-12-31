@@ -57,6 +57,10 @@
     ld tp, OFFSET_KTP(s0)
 .endm
 
+.macro URET
+    .word 0x00200073
+.endm
+
 // restore_all(LFIContext *)
 // a0: LFIContext *
 .macro RESTORE_ALL
@@ -98,7 +102,7 @@
     ld t6,  OFFSET_T6(a0)
 
     ld a0,  OFFSET_A0(a0)
-    uret
+    URET
 .endm
 
 // LightSerial prologue

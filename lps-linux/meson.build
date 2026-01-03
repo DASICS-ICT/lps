@@ -10,6 +10,7 @@ srcs = files(
     'cwalk.c',
     'kfile.c',
     'sched.c',
+    'queue.c',
 )
 
 subdir('sys')

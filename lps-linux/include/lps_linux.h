@@ -50,6 +50,18 @@ rrschedadd(struct LPSThread *t);
 void
 rrschedstart(bool utimer);
 
+void
+mcsched_init();
+
+int
+mcsched_add(struct LPSThread *t);
+
+void
+mcshed_start();
+
+void
+mcsched_join();
+
 // Create a Pipe from a proc to another, write fromfd and read tofd
 bool
 lps_pipe_new(struct LPSProc *from, int fromfd, struct LPSProc *to, int tofd);

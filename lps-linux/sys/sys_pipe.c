@@ -1,6 +1,5 @@
 #include "sys/sys.h"
-#include "queue.h"
-#include "sched.h"
+#include "psched.h"
 
 #define NPIPE 64
 #define PIPESZ 1024

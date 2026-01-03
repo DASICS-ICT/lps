@@ -23,7 +23,7 @@ static void kregs_init(struct KRegs *kregs, uintptr_t entry, uintptr_t sp, uintp
     kregs->sp = sp;
     kregs->sp_base = sp_base;
     kregs->ra = entry;
-    LOG_("kregs_init: entry:%lx, sp:%lx, sp_base:%lx", entry, sp, sp_base);
+    // LOG_("kregs_init: entry:%lx, sp:%lx, sp_base:%lx", entry, sp, sp_base);
 }
 
 EXPORT struct LPSContext *

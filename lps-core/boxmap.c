@@ -60,7 +60,7 @@ boxmap_size(struct BoxMap *map)
 {
     size_t total = 0;
     for (size_t i = 0; i < map->nregions; i++) {
-        total += map->regions[i].size - 2 * map->opts.guardsize;
+        total += map->regions[i].size;
     }
     return total;
 }
@@ -119,11 +119,6 @@ addregion(struct BoxMap *map, void *base, size_t size)
         free(alloc);
         return false;
     }
-
-    // Reserve the guard regions on either end of the new region.
-    extalloc_allocat(alloc, alignbase, map->opts.guardsize);
-    extalloc_allocat(alloc, alignbase + alignsize - map->opts.guardsize,
-        map->opts.guardsize);
 
     map->regions[map->nregions++] = (struct AddrRegion) {
         .base = (void *) alignbase,

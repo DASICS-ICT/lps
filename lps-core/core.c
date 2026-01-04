@@ -19,8 +19,7 @@ lps_new(struct LPSOptions opts, size_t nsandboxes) {
     }
 
     struct BoxMap *bm = boxmap_new((struct BoxMapOptions) {
-        .chunksize = opts.boxsize, 
-        .guardsize = 0,
+        .chunksize = opts.boxsize,
     });
 
     if (!bm) {

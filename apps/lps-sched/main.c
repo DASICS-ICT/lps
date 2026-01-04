@@ -59,14 +59,16 @@ main(int argc, char** argv)
     }
 
     struct LPSEngine *engine = lps_new((struct LPSOptions) {
-        .boxsize = gb(1),
+        .boxsize = mb(64),
         .verbose = true,
-    }, 128);
+    }, 1000);
     assert(engine != NULL);
 
     struct LPSLinuxEngine *x_engine = lps_linux_new(engine, (struct LPSLinuxOpts) {
         .verbose = false,
         .passthrough = false,
+        .brksize = mb(16),
+        .stacksize = mb(2),
     });
     assert(x_engine != NULL);
 
@@ -101,7 +103,7 @@ gen_thread(struct LPSLinuxEngine *x_engine, char **argv, int argc) {
     struct LPSThread* t =
         lps_thread_new(proc, argc - 1, (const char**)(argv + 1), &envp);
 
-    fprintf(stderr, "[Main]: gen thread %p\n", t);
+    // fprintf(stderr, "[Main]: gen thread %p\n", t);
 
     return t;
 }

@@ -223,7 +223,7 @@ lps_thread_new(struct LPSProc *proc, int argc, const char **argv,
     t->tid = next_tid(proc);
     list_init(&t->elem);
 
-    size_t stacksize = 2ULL * 1024 * 1024; // TODO: configurable
+    size_t stacksize = proc->engine->opts.stacksize;
     uintptr_t end = proc->boxinfo.base + proc->boxinfo.size;
     t->stack = lps_box_mapat(proc->box, end - stacksize, stacksize, 
         PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);

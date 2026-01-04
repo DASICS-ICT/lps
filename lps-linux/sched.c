@@ -98,6 +98,8 @@ mcsched_loop(void *arg)
 
     void *buf[QUEUESIZE];
 
+    size_t task_count = 0;
+
     // 1. check local queue
     // 2. check global queue
     // 3. steal from other queues
@@ -137,13 +139,19 @@ mcsched_loop(void *arg)
                 ring_push_one(my_sched->runq, (void *)t);
             }
             if (t->state == THREAD_EXITED) {
-                fprintf(stderr, "[MCScheduler(%d: %p)]: thread %p is finished\n", 
-                    my_sched->core_id, my_sched, t);
+                // fprintf(stderr, "[MCScheduler(%d: %p)]: thread %p is finished\n", 
+                //     my_sched->core_id, my_sched, t);
+                task_count++;
             }
 
         } else {
             // fprintf(stderr, "[MCScheduler(%d: %p)]: no work!\n", my_sched->core_id, my_sched);
             // Sleep for a while to avoid busy-waiting
+            if (task_count) {
+                fprintf(stderr, "[MCScheduler(%d: %p)]: finished %d works from last sleep!\n", 
+                    my_sched->core_id, my_sched, task_count);
+                task_count = 0;
+            }
             usleep(10000); // Sleep for 10 ms
         }
     } 

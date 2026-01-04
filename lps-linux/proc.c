@@ -49,7 +49,7 @@ proc_load(struct LPSProc *proc, int prog_fd, const uint8_t *prog,
     proc->brkbase = info.lastva;
     proc->brksize = 0;
 
-    size_t brkmaxsize = BRKMAXSIZE;
+    size_t brkmaxsize = proc->engine->opts.brksize ? proc->engine->opts.brksize: BRKMAXSIZE;
 
     // Map stack ahead of time, then using bound register 
     // to control its size later in sys_brk

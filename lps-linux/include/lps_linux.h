@@ -9,6 +9,9 @@ struct LPSLinuxOpts {
     bool verbose;
 
     bool passthrough;
+
+    size_t brksize;
+    size_t stacksize;
 };
 
 struct LPSLinuxEngine;

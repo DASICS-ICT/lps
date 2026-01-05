@@ -237,17 +237,20 @@ lps_thread_new(struct LPSProc *proc, int argc, const char **argv,
     sp_init(t, sp);
     uepc_init(t, proc->entry);
 
-    lps_membound_set(t->ctx, MEMBOUND_HEAP, 0, proc->brkbase, proc->brkbase);
-    lps_membound_set(t->ctx, MEMBOUND_STACK, LIBCFG_R | LIBCFG_W, 
-        t->stack, end);
-    for (int i = 0; i < proc->seginfo.len; i++) {
-        struct ElfSeg seg = proc->seginfo.elfsegs[i];
-        if (seg.prot & PROT_EXEC) {
-            lps_jmpbound_set(t->ctx, JMPBOUND_TEXT, seg.start, seg.end);
-        }
-        lps_membound_set(t->ctx, MEMBOUND_ELF0 + i, dasics_flags(seg.prot),
-            seg.start, seg.end);
-    }
+    // lps_membound_set(t->ctx, MEMBOUND_HEAP, 0, proc->brkbase, proc->brkbase);
+    // lps_membound_set(t->ctx, MEMBOUND_STACK, LIBCFG_R | LIBCFG_W, 
+    //     t->stack, end);
+    // for (int i = 0; i < proc->seginfo.len; i++) {
+    //     struct ElfSeg seg = proc->seginfo.elfsegs[i];
+    //     if (seg.prot & PROT_EXEC) {
+    //         lps_jmpbound_set(t->ctx, JMPBOUND_TEXT, seg.start, seg.end);
+    //     }
+        // lps_membound_set(t->ctx, MEMBOUND_ELF0 + i, dasics_flags(seg.prot),
+        //     seg.start, seg.end);
+    // }
+    uintptr_t start = proc->boxinfo.base;
+    lps_membound_set(t->ctx, 0, LIBCFG_R | LIBCFG_W, start, end);
+    lps_jmpbound_set(t->ctx, 0, start, end);
 
     return t;
 err3:

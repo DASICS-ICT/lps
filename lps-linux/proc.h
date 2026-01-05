@@ -9,6 +9,8 @@
 // Maximum number of bytes that can be allocated via sys_brk.
 #define BRKMAXSIZE (512UL * 1024 * 1024)
 
+#define STACKSIZE (2UL * 1024 * 1024)
+
 // Information from loading the ELF image.
 struct ELFLoadInfo {
     uintptr_t lastva;

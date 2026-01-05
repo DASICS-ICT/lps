@@ -14,6 +14,11 @@ lps_linux_new(struct LPSEngine *lps_engine, struct LPSLinuxOpts opts)
 
     lps_sys_handler(lps_engine, arch_syshandle);
 
+    if (opts.brksize == 0)
+        opts.brksize = BRKMAXSIZE;
+    if (opts.stacksize == 0)
+        opts.stacksize = STACKSIZE;
+
     *engine = (struct LPSLinuxEngine) {
         .engine = lps_engine,
         .opts = opts,

@@ -49,12 +49,12 @@ proc_load(struct LPSProc *proc, int prog_fd, const uint8_t *prog,
     proc->brkbase = info.lastva;
     proc->brksize = 0;
 
-    size_t brkmaxsize = proc->engine->opts.brksize ? proc->engine->opts.brksize: BRKMAXSIZE;
+    size_t brkmaxsize = proc->engine->opts.brksize;
 
-    // Map stack ahead of time, then using bound register 
+    // (Abandon) Map stack ahead of time, then using bound register 
     // to control its size later in sys_brk
     uintptr_t brkregion = lps_box_mapat(proc->box, proc->brkbase, brkmaxsize,
-        PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (brkregion == (uintptr_t) -1) {
         return false;
     }

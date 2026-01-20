@@ -1,8 +1,6 @@
 
 <h1>LPS</h1>
 
-[![MPL License](https://img.shields.io/badge/license-MPL%202.0-blue)](https://github.com/zyedidia/lfi/blob/master/LICENSE)
-
 LPS (Lightweight Process Sandbox)
 
 编译

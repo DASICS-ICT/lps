@@ -7,7 +7,8 @@ if [ ! -d "$RUN_DIR" ]; then
 fi
 
 export DASICS_FLAG
-RUN_SH="run-test.sh"
+RUN_SH="run-train.sh"
+#RUN_SH="run-test.sh"
 TIME_LOG="$RUN_SH$DASICS_FLAG.timelog"
 WORKLOAD="./$RUN_DIR"
 

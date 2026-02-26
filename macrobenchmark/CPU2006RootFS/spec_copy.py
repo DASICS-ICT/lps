@@ -58,7 +58,7 @@ def spec_copy(name, src, dest):
     
     # copy data
     data_all_path = os.path.join(src_path, 'data', 'all', 'input')
-    data_test_path = os.path.join(src_path, 'data', 'test', 'input')
+    data_test_path = os.path.join(src_path, 'data', 'train', 'input')
     
     if os.path.exists(data_all_path):
         dry_run(f'cp -r {data_all_path}/* {dest_path}')
@@ -67,7 +67,7 @@ def spec_copy(name, src, dest):
         dry_run(f'cp -r {data_test_path}/* {dest_path}')
     
     # copy sh
-    sh_path = os.path.join(src_path, 'run-test.sh')
+    sh_path = os.path.join(src_path, 'run-train.sh')
     if not os.path.exists(sh_path):
         print(f'sh [{os.path.basename(sh_path)}] not exists!')
         exit()

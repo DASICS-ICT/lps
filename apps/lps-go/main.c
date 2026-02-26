@@ -57,12 +57,12 @@ main(int argc, char** argv)
 
     struct LPSEngine *engine = lps_new((struct LPSOptions) {
         .boxsize = gb(4),
-        .verbose = true,
+        .verbose = false,
     }, 10);
     assert(engine != NULL);
 
     struct LPSLinuxEngine *x_engine = lps_linux_new(engine, (struct LPSLinuxOpts) {
-        .verbose = true,
+        .verbose = false,
         .passthrough = false,
     });
     assert(x_engine != NULL);

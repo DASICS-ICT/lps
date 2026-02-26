@@ -113,10 +113,11 @@ syshandle(struct LPSThread *t, uintptr_t sysno, uintptr_t a0, uintptr_t a1,
     return r;
 }
 
-inline static uint64_t get_time(void) {
-    uint64_t time;
-    asm volatile ("rdtime %0" : "=r"(time));
-    return time;
+inline static uint64_t get_ticks(void) {
+    uint64_t ticks;
+    asm volatile ("rdcycle %0" : "=r"(ticks));
+    // asm volatile ("rdtime %0" : "=r"(ticks));
+    return ticks;
 }
 
 void arch_syshandle(struct LPSContext *ctx)
@@ -127,7 +128,7 @@ void arch_syshandle(struct LPSContext *ctx)
 
     if (regs->ucasue == CAUSE_IRQ_U_TIME) {
         // TODO: check overflow
-        uint64_t next = get_time() + 10000000;
+        uint64_t next = get_ticks() + 10000000;
 		DBG("[U_INTR_HANDLER] set utimecmp to %lu", next);
 		csr_write(CSR_UTIMECMP, next);
 

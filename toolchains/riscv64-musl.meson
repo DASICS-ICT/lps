@@ -1,0 +1,13 @@
+[binaries]
+c = 'riscv64-linux-gcc'
+cpp = 'riscv64-linux-g++'
+ar = 'riscv64-linux-ar'
+ld = 'riscv64-linux-ld'
+objcopy = 'riscv64-linux-objcopy'
+strip = 'riscv64-linux-strip'
+
+[host_machine]
+system = 'linux'
+cpu_family = 'riscv64'
+cpu = 'riscv64'
+endian = 'little'

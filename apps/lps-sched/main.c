@@ -72,7 +72,7 @@ main(int argc, char** argv)
     });
     assert(x_engine != NULL);
 
-    mcsched_init();
+    mcsched_init(2);
 
     for (int i = 0; i < 100; i++) {
         mcsched_add(gen_thread(x_engine, argv, argc));

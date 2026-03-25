@@ -11,3 +11,8 @@ microbenchmark/bin/
 backup/
 
 macrobenchmark/CPU2006RootFS/*/
+
+mmbenchmark/dav1d/bin
+mmbenchmark/dav1d/in
+
+macrobenchmark/CPU2006RootFS/*.png

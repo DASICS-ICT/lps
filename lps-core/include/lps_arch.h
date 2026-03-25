@@ -52,7 +52,7 @@ struct LPSRegs {
 
     // DASICS user registers
     uint64_t uepc;    // the entrance of ctx
-    uint64_t ucasue;
+    uint64_t ucause;
     uint64_t utval;
     uint64_t dfreason;
 

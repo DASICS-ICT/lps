@@ -103,6 +103,7 @@ syshandle(struct LPSThread *t, uintptr_t sysno, uintptr_t a0, uintptr_t a1,
     SYS(socket, sys_nosys(t, "socket"))
     SYS(mremap, sys_nosys(t, "mremap"))
     SYS(utimensat, sys_nosys(t, "utimensat"))
+    SYS(memfd_create, sys_nosys(t, "memfd_create"))
     
     default:
         LOG(t->proc->engine, "unknown syscall: %ld", sysno);
@@ -126,7 +127,7 @@ void arch_syshandle(struct LPSContext *ctx)
     assert(t);
     struct LPSRegs *regs = lps_ctx_regs(ctx);
 
-    if (regs->ucasue == CAUSE_IRQ_U_TIME) {
+    if (regs->ucause == CAUSE_IRQ_U_TIME) {
         // TODO: check overflow
         uint64_t next = get_ticks() + 10000000;
 		DBG("[U_INTR_HANDLER] set utimecmp to %lu", next);
@@ -137,7 +138,7 @@ void arch_syshandle(struct LPSContext *ctx)
         return;
     }
 
-    assert(regs->ucasue == CAUSE_DASICS_U_CHECK_FAULT);
+    assert(regs->ucause == CAUSE_DASICS_U_CHECK_FAULT);
     
     if (regs->dfreason != DFR_EF) {
         switch (regs->dfreason) {
@@ -146,6 +147,12 @@ void arch_syshandle(struct LPSContext *ctx)
             break;
         case DFR_SF:
             LOG(t->proc->engine, "store fault: uepc:%lx, addr:%lx", regs->uepc, regs->utval);
+            break;
+        case DFR_JF:
+            fprintf(stderr, "[DASICS] jump fault: from=0x%lx, target=0x%lx, box=[0x%lx, 0x%lx)\n",
+                    regs->uepc, regs->utval,
+                    t->proc->boxinfo.base,
+                    t->proc->boxinfo.base + t->proc->boxinfo.size);
             break;
         default:
             LOG(t->proc->engine, "DASICS fault(%lx): uepc:%lx, addr:%lx", regs->dfreason, regs->uepc, regs->utval);

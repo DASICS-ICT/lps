@@ -54,7 +54,7 @@ void
 rrschedstart(bool utimer);
 
 void
-mcsched_init();
+mcsched_init(int ncore);
 
 int
 mcsched_add(struct LPSThread *t);

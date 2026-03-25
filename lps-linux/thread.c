@@ -189,7 +189,7 @@ sp_init(struct LPSThread *t, uintptr_t sp)
 {
     struct LPSRegs *regs = lps_ctx_regs(t->ctx);
     regs->sp = sp;
-    LOG(t->proc->engine, "sp_init: 0x%lx", sp);
+    // LOG(t->proc->engine, "sp_init: 0x%lx", sp);
 }
 
 static void
@@ -197,7 +197,7 @@ uepc_init(struct LPSThread *t, uintptr_t uepc)
 {
     struct LPSRegs *regs = lps_ctx_regs(t->ctx);
     regs->uepc = uepc;
-    LOG(t->proc->engine, "uepc_init: 0x%lx", uepc);
+    // LOG(t->proc->engine, "uepc_init: 0x%lx", uepc);
 }
 
 static int
@@ -231,7 +231,7 @@ lps_thread_new(struct LPSProc *proc, int argc, const char **argv,
         goto err3;
     }
     t->stack_size = stacksize;
-    LOG(proc->engine, "map stack at [0x%lx, 0x%lx]", t->stack, end);
+    // LOG(proc->engine, "map stack at [0x%lx, 0x%lx]", t->stack, end);
     
     uintptr_t sp = stack_init(t, argc, argv, envp);
     sp_init(t, sp);

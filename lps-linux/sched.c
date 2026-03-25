@@ -35,7 +35,7 @@ rrschedstart(bool utimer)
         lps_utimer_init();
     }
     // Round robin scheduler
-    fprintf(stderr, "[RRScheduler]: start scheduling\n");
+    DBG("[RRScheduler]: start scheduling\n");
     while(true) {
         struct LPSThread *t = get_next_runable();
         if (t == NULL) return;
@@ -46,10 +46,10 @@ rrschedstart(bool utimer)
         }
 
         if (t->state == THREAD_EXITED) {
-            fprintf(stderr, "[RRScheduler]: thread %p is finished\n", t);
+            DBG("[RRScheduler]: thread %p is finished\n", t);
         }
     }
-    fprintf(stderr, "[RRScheduler]: end scheduling\n");
+    DBG("[RRScheduler]: end scheduling\n");
 }
 
 void
@@ -113,7 +113,7 @@ mcsched_loop(void *arg)
             count = ring_pop(mcsched_grunq, buf, count);
 
             if (count != 0) {
-                fprintf(stderr, "[MCScheduler(%d: %p)]: get %d works from global queue\n", 
+                DBG("[MCScheduler(%d: %p)]: get %d works from global queue\n", 
                     my_sched->core_id, my_sched, count);
                 assert(ring_push(my_sched->runq, buf, count) == count);
                 e = ring_pop_one(my_sched->runq);
@@ -123,10 +123,11 @@ mcsched_loop(void *arg)
                     if (i == my_sched->core_id) continue;
                     e = ring_pop_back(mcsched[i]->runq);
                     if (e != NULL) {
-                        fprintf(stderr, "[MCScheduler(%d: %p)]: steal one work(%p) from local queue(%d)\n", 
+                        DBG("[MCScheduler(%d: %p)]: steal one work(%p) from local queue(%d)\n",
                             my_sched->core_id, my_sched, e, i);
+                        // break;
                     }
-                } 
+                }
             }
         }
 
@@ -139,19 +140,20 @@ mcsched_loop(void *arg)
                 ring_push_one(my_sched->runq, (void *)t);
             }
             if (t->state == THREAD_EXITED) {
-                // fprintf(stderr, "[MCScheduler(%d: %p)]: thread %p is finished\n", 
+                // DBG("[MCScheduler(%d: %p)]: thread %p is finished\n", 
                 //     my_sched->core_id, my_sched, t);
                 task_count++;
             }
 
         } else {
-            // fprintf(stderr, "[MCScheduler(%d: %p)]: no work!\n", my_sched->core_id, my_sched);
+            // DBG("[MCScheduler(%d: %p)]: no work!\n", my_sched->core_id, my_sched);
             // Sleep for a while to avoid busy-waiting
             if (task_count) {
-                fprintf(stderr, "[MCScheduler(%d: %p)]: finished %d works from last sleep!\n", 
+                DBG("[MCScheduler(%d: %p)]: finished %d works from last sleep!\n", 
                     my_sched->core_id, my_sched, task_count);
                 task_count = 0;
             }
+            break;
             usleep(10000); // Sleep for 10 ms
         }
     } 
@@ -171,15 +173,15 @@ mcshed_start()
         if (pthread_setaffinity_np(mcsched[i]->thread_handle, sizeof(cpu_set_t), &cpuset) != 0) {
             perror("pthread_setaffinity_np failed");
         }
-        fprintf(stderr, "[MCScheduler]: Worker thread %d(%p) pinned to core %d.\n", i, mcsched[i], i);
+        DBG("[MCScheduler]: Worker thread %d(%p) pinned to core %d.\n", i, mcsched[i], i);
     }
 }
 
 void
-mcsched_init()
+mcsched_init(int ncore)
 {
-    fprintf(stderr, "[MCScheduler]: init...\n");
-    mcsched_ncore = 2;
+    DBG("[MCScheduler]: init...\n");
+    mcsched_ncore = (ncore > 0 && ncore <= MAX_CORES) ? ncore : 2;
 
     // init global queue
     mcsched_grunq = ring_create(QUEUESIZE);

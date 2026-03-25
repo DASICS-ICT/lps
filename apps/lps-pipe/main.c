@@ -61,13 +61,13 @@ main(int argc, char** argv)
     }
 
     struct LPSEngine *lps = lps_new((struct LPSOptions) {
-        .verbose = true,
+        .verbose = false,
         .boxsize = gb(4),
     }, 10);
     assert(lps);
 
     struct LPSLinuxEngine *lps_linux = lps_linux_new(lps, (struct LPSLinuxOpts) {
-        .verbose = true,
+        .verbose = false,
         .passthrough = false,
     });
     assert(lps_linux);

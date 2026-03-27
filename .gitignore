@@ -14,5 +14,6 @@ macrobenchmark/CPU2006RootFS/*/
 
 mmbenchmark/dav1d/bin
 mmbenchmark/dav1d/in
+mmbenchmark/security/mini/bin
 
 macrobenchmark/CPU2006RootFS/*.png

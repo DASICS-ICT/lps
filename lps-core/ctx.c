@@ -5,9 +5,37 @@
 #include "log.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 _Thread_local struct LPSContext *lps_myctx;
 _Thread_local struct KRegs lps_kctx;
+
+/* ---- DASICS CSR breakdown profiling ---- */
+static inline uint64_t rdcycle_ctx(void) {
+    uint64_t c;
+    asm volatile("rdcycle %0" : "=r"(c));
+    return c;
+}
+
+_Thread_local uint64_t lps_dasics_csr_cycles = 0;
+_Thread_local uint64_t lps_switch_count = 0;
+
+void lps_switch_stats_reset(void) {
+    lps_dasics_csr_cycles = 0;
+    lps_switch_count = 0;
+}
+
+void lps_switch_stats_print(void) {
+    if (lps_switch_count == 0) {
+        printf("[LPS-PROF] no context switches recorded\n");
+        return;
+    }
+    printf("[LPS-PROF] context switches: %lu\n", lps_switch_count);
+    printf("[LPS-PROF] DASICS CSR total cycles: %lu\n", lps_dasics_csr_cycles);
+    printf("[LPS-PROF] DASICS CSR avg cycles/switch: %lu\n",
+           lps_dasics_csr_cycles / lps_switch_count);
+}
+/* ---- end profiling ---- */
 
 extern void lps_ctx_entry(struct LPSContext *ctx)
     __asm__ ("lps_ctx_entry");
@@ -82,7 +110,11 @@ EXPORT void
 lps_kswitch_to(struct LPSContext *ctx)
 {
     lps_myctx = ctx;
+    uint64_t t0 = rdcycle_ctx();
     lps_load_dasics(ctx);
+    uint64_t t1 = rdcycle_ctx();
+    lps_dasics_csr_cycles += (t1 - t0);
+    lps_switch_count++;
     kswitch(ctx, &lps_kctx, &ctx->kregs);
 }
 

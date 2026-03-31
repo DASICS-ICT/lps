@@ -10,7 +10,7 @@ bin/%: %.c
 	$(CC) -o $@ $< -static -O2
 
 # LPS sandbox programs (static-pie)
-lps-sandbox: bin/exit_imm bin/wc bin/workload bin/fc_source bin/fc_transform bin/fc_sink
+lps-sandbox: bin/exit_imm bin/wc bin/workload bin/fc_source bin/fc_transform bin/fc_sink bin/ecall_loop
 
 bin/exit_imm: exit_imm.c
 	$(CC) -static-pie -O2 -o $@ $<
@@ -30,9 +30,13 @@ bin/fc_transform: fc_transform.c
 bin/fc_sink: fc_sink.c cycle.h
 	$(CC) -static-pie -O2 -I. -o $@ $<
 
+bin/ecall_loop: ecall_loop.c cycle.h
+	$(CC) -static-pie -O2 -I. -o $@ $<
+
 # Native comparison programs
 native: bin/native_startup bin/native_concurrent bin/native_multicore bin/native_chain \
-        bin/fc_source_native bin/fc_transform_native bin/fc_sink_native
+        bin/fc_source_native bin/fc_transform_native bin/fc_sink_native \
+        bin/sfi_pingpong
 
 bin/native_startup: native_startup.c
 	$(CC) -static -O2 -o $@ $<
@@ -53,6 +57,9 @@ bin/fc_transform_native: fc_transform_native.c
 	$(CC) -static -O2 -o $@ $<
 
 bin/fc_sink_native: fc_sink_native.c cycle.h
+	$(CC) -static -O2 -I. -o $@ $<
+
+bin/sfi_pingpong: sfi_pingpong.c cycle.h
 	$(CC) -static -O2 -I. -o $@ $<
 
 clean:

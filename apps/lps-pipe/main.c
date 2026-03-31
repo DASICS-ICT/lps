@@ -100,7 +100,9 @@ main(int argc, char** argv)
     rrschedadd(ping);
     rrschedadd(pong);
 
+    lps_switch_stats_reset();
     rrschedstart(false);
-    
+    lps_switch_stats_print();
+
     return 0;
 }

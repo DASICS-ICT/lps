@@ -167,6 +167,9 @@ lps_kswitch_from(struct LPSContext *ctx);
 void
 lps_utimer_init();
 
+// DASICS CSR profiling
+void lps_switch_stats_reset(void);
+void lps_switch_stats_print(void);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
 echo "syscall test on linux..."
-../bin/getpid
+bin/getpid
 echo "syscall test on lps..."
-lps-go ../bin/getpid -dasics
+lps-go bin/getpid -dasics

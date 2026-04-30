@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include <string.h>
+
 // global queue for RRScheduler
 static QUEUE_INIT(runq);
 static QUEUE_INIT(exitq);
@@ -162,6 +164,13 @@ mcsched_loop(void *arg)
 void
 mcshed_start()
 {
+    long nproc = sysconf(_SC_NPROCESSORS_ONLN);
+    if (nproc <= 0) nproc = mcsched_ncore;
+    if (mcsched_ncore > nproc) {
+        ERROR("mcsched: requested %d cores but only %ld online, extra workers will be unbound",
+              mcsched_ncore, nproc);
+    }
+
     // init per-core scheduler
     for (int i = 0; i < mcsched_ncore; i++) {
         pthread_create(&mcsched[i]->thread_handle, NULL, (void* (*)(void*))mcsched_loop, mcsched[i]);
@@ -169,11 +178,13 @@ mcshed_start()
         // bind worker thread to core
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset);
-        CPU_SET(i, &cpuset);
-        if (pthread_setaffinity_np(mcsched[i]->thread_handle, sizeof(cpu_set_t), &cpuset) != 0) {
-            perror("pthread_setaffinity_np failed");
+        CPU_SET(i % nproc, &cpuset);
+        int ret = pthread_setaffinity_np(mcsched[i]->thread_handle, sizeof(cpu_set_t), &cpuset);
+        if (ret != 0) {
+            ERROR("pthread_setaffinity_np(worker %d -> host_cpu %ld) failed: %s (non-fatal, continuing)",
+                  i, i % nproc, strerror(ret));
         }
-        DBG("[MCScheduler]: Worker thread %d(%p) pinned to core %d.\n", i, mcsched[i], i);
+        DBG("[MCScheduler]: Worker thread %d(%p) pinned to core %ld.\n", i, mcsched[i], i % nproc);
     }
 }
 

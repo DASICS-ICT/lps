@@ -265,3 +265,47 @@ elf_load(struct LPSProc *proc, const char *prog_path, int prog_fd,
 err:
     return false;
 }
+
+char *
+elf_interp(const uint8_t *prog_data, size_t prog_size)
+{
+    struct Buf prog = (struct Buf) {
+        .data = prog_data,
+        .size = prog_size,
+    };
+
+    Elf64_Ehdr ehdr;
+    size_t n = buf_read(prog, &ehdr, sizeof(ehdr), 0);
+    if (n != sizeof(ehdr))
+        return NULL;
+
+    if (ehdr.e_phnum > PHNUM_MAX)
+        return NULL;
+    if (ehdr.e_phoff >= prog_size)
+        return NULL;
+
+    Elf64_Phdr phdr[ehdr.e_phnum];
+    n = buf_read(prog, phdr, sizeof(Elf64_Phdr) * ehdr.e_phnum, ehdr.e_phoff);
+    if (n != sizeof(Elf64_Phdr) * ehdr.e_phnum)
+        return NULL;
+
+    // Look for the PT_INTERP section, which will hold the name of the dynamic
+    // interpreter that this ELF binary should be loaded with.
+    for (int x = 0; x < ehdr.e_phnum; x++) {
+        if (phdr[x].p_type == PT_INTERP) {
+            if (phdr[x].p_filesz >= INTERP_MAX)
+                return NULL;
+            char *interp = malloc(phdr[x].p_filesz);
+            if (!interp)
+                return NULL;
+            size_t n = buf_read(prog, interp, phdr[x].p_filesz,
+                phdr[x].p_offset);
+            if (n != phdr[x].p_filesz) {
+                free(interp);
+                return NULL;
+            }
+            return interp;
+        }
+    }
+    return NULL;
+}

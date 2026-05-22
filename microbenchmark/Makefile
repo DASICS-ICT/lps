@@ -61,6 +61,9 @@ bin/fc_sink_native: fc_sink_native.c cycle.h
 
 bin/sfi_pingpong: sfi_pingpong.c cycle.h
 	$(CC) -static -O2 -I. -o $@ $<
+	
+bin/io_bpf: io_bpf.c cycle.h
+	$(CC) -static-pie -O2 -I. -o $@ $< -lpthread
 
 clean:
 	rm bin/*

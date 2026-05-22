@@ -1,1 +1,1 @@
-lps-preempt -u timer timerB -dasics
+lps-preempt -u bin/timer bin/timerB -dasics

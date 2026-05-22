@@ -2,13 +2,11 @@
 #include "fd.h"
 #include "elfload.h"
 #include "cwalk.h"
-#include "buf.h"
 
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include <string.h>
-#include <errno.h>
 
 struct LPSProc * 
 lps_proc_new(struct LPSLinuxEngine *engine)
@@ -37,42 +35,15 @@ proc_load(struct LPSProc *proc, int prog_fd, const uint8_t *prog,
     size_t prog_size, const char *prog_path)
 {
     // TODO: support other besides static-pie
-    struct Buf interp = (struct Buf) { 0 };
-
-    char *interp_path = elf_interp(prog, prog_size);
-
-    if (interp_path) {
-        if (cwk_path_is_absolute(interp_path)) {
-            interp = buf_read_file(interp_path);
-            if (!interp.data) {
-                LOG(proc->engine, "error opening dynamic linker %s: %s",
-                    interp_path, strerror(errno));
-                free(interp_path);
-                return false;
-            }
-            // If we are loading the main program via an in-memory buffer, we
-            // should do the same thing with the interpreter, even if we could
-            // load it directly from the file.
-            if (prog_fd == -1) {
-                interp.fd = -1;
-                close(interp.fd);
-            }
-            LOG(proc->engine, "using sandbox dynamic linker: %s", interp_path);
-        } else {
-            LOG(proc->engine,
-                "dynamic linker ignored because it is relative path: %s",
-                interp_path);
-        }
-    }
 
     struct ELFLoadInfo info;
 
     if (!elf_load(proc, prog_path, prog_fd, prog, prog_size, 
-            interp_path, interp.fd, interp.data, interp.size, &info)) {
+        NULL, -1, NULL, 0, &info)) {
         return false;
     }
 
-    proc->entry = interp.data ? info.ldentry : info.elfentry;
+    proc->entry = info.elfentry;
     proc->elfinfo = info;
 
     proc->brkbase = info.lastva;
@@ -87,9 +58,6 @@ proc_load(struct LPSProc *proc, int prog_fd, const uint8_t *prog,
     if (brkregion == (uintptr_t) -1) {
         return false;
     }
-
-    if (interp.data != NULL)
-        buf_close(&interp);
 
     return true;
 }

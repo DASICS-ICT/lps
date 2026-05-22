@@ -117,7 +117,7 @@ syshandle(struct LPSThread *t, uintptr_t sysno, uintptr_t a0, uintptr_t a1,
 inline static uint64_t get_ticks(void) {
     uint64_t ticks;
     asm volatile ("rdcycle %0" : "=r"(ticks));
-    // asm volatile ("rdtime %0" : "=r"(ticks)); // FOR QEMU VER.
+    // asm volatile ("rdtime %0" : "=r"(ticks));
     return ticks;
 }
 
@@ -129,7 +129,7 @@ void arch_syshandle(struct LPSContext *ctx)
 
     if (regs->ucause == CAUSE_IRQ_U_TIME) {
         // TODO: check overflow
-        uint64_t next = get_ticks() + 10000000; // NOTICE!! QEMU ver. need rdtime
+        uint64_t next = get_ticks() + 10000000;
 		DBG("[U_INTR_HANDLER] set utimecmp to %lu", next);
 		csr_write(CSR_UTIMECMP, next);
 
